@@ -1,0 +1,25 @@
+﻿{
+  "version": "1.0.0",
+  "demo": true,
+  "note": "Sample data for test cases A-D (Demonstration) - Pyrolysis + Biochar flow.",
+  "collections": {
+    "usuarios": [
+      { "id": "u_gen_001", "nombre": "María López", "rol": "generador", "tipo_generador": "mercados", "organizacion": "Mercado Central", "activo": true },
+      { "id": "u_op_001",  "nombre": "José Castillo", "rol": "operador", "activo": true },
+      { "id": "u_admin_001","nombre": "Yessenia",      "rol": "administrador", "activo": true }
+    ],
+    "solicitudes": [],
+    "recepciones": [],
+    "lotes": [],
+    "subproductos": [],
+    "salidas_subproductos": [],
+    "config": {
+      "centro": { "nombre": "Centro Comunitario de Aprovechamiento de Biomasa Vegetal", "direccion": "Municipio, Nicaragua", "telefono": "+505-0000-0000", "coordenadas": {"lat":0,"lng":0}, "activo": true },
+      "horarios": [],
+      "capacidad": { "recepcion_kg_dia": 500, "almacenamiento_kg": 2000, "recepciones_pausadas": false, "motivo_pausa": null, "recogida_habilitada": true },
+      "catalogo_materiales": [],
+      "procesos": [],
+      "bitacora_cambios": []
+    }
+  }
+}
