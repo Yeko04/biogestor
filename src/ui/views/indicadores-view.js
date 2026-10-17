@@ -25,8 +25,8 @@ export function renderIndicadoresView() {
       <div class="container">
         <div class="view-header">
           <div class="view-title-group">
-            <h1 class="section-title" style="margin-bottom:0;">Panel de Indicadores y Trazabilidad</h1>
-            <p class="view-subtitle">Métricas de eficiencia, desvío de vertedero y valorización de biomasa urbana.</p>
+            <h1 class="section-title" style="margin-bottom:0;">Lo que estamos transformando.</h1>
+            <p class="view-subtitle">Un vistazo al material recibido, su aprovechamiento y los resultados de cada proceso.</p>
           </div>
         </div>
 

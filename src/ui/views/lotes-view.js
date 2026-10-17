@@ -21,8 +21,8 @@ export function renderLotesView() {
       <div class="container">
         <div class="view-header">
           <div class="view-title-group">
-            <h1 class="section-title" style="margin-bottom:0;">Gestión de Lotes y Trazabilidad</h1>
-            <p class="view-subtitle">Agrupación de recepciones para Biodigestión anaerobia o Pirólisis (Kon-Tiki elevado).</p>
+            <h1 class="section-title" style="margin-bottom:0;">El recorrido de cada lote.</h1>
+            <p class="view-subtitle">Del material recibido a su transformación. Seguí cada etapa de biodigestión y pirólisis.</p>
           </div>
           <button class="btn btn-primary" id="btnToggleLoteForm">+ Crear Nuevo Lote</button>
         </div>

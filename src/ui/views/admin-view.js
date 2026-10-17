@@ -17,8 +17,8 @@ export function renderAdminView() {
       <div class="container">
         <div class="view-header">
           <div class="view-title-group">
-            <h1 class="section-title" style="margin-bottom:0;">Panel de Administración y Control</h1>
-            <p class="view-subtitle">Configuración operativa, gestión de copias de seguridad (JSON) y bitácora de auditoría.</p>
+            <h1 class="section-title" style="margin-bottom:0;">Cuidar el ciclo.</h1>
+            <p class="view-subtitle">Disponibilidad del centro, respaldos y registro de cambios. Todo en su lugar.</p>
           </div>
         </div>
 

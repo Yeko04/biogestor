@@ -1,87 +1,55 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centro Comunitario de Aprovechamiento de Biomasa Vegetal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/base.css?v=2.3">
-  <link rel="stylesheet" href="css/layout.css?v=2.3">
-  <link rel="stylesheet" href="css/components.css?v=2.3">
-  <link rel="stylesheet" href="css/forms.css?v=2.3">
-  <link rel="stylesheet" href="css/animations.css?v=2.3">
-  <link rel="stylesheet" href="css/responsive.css?v=2.3">
-  <!-- Leaflet Maps CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <meta name="theme-color" content="#163f35">
+  <meta name="description" content="Bioterra: una segunda vida para los restos vegetales. Conectamos a la comunidad para transformar biomasa en biol, biogás y biochar en Masaya, Nicaragua.">
+  <title>Bioterra — Materia en movimiento</title>
+  <link rel="icon" href="assets/brand.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/barlow-condensed.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="assets/fonts/dm-sans.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/forms.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/bioterra.css">
 </head>
-
 <body>
+  <a class="skip-link" href="#app-view">Saltar al contenido</a>
   <header class="navbar">
     <div class="container nav-container">
-      <div class="nav-brand">
-        <span class="nav-brand-title">Biogestor</span>
-        <span class="nav-brand-subtitle">Aprovechamiento de Biomasa</span>
-      </div>
-      <div class="nav-actions">
-        <span class="led-badge" title="Persistencia activa en localStorage">
-          <span class="led-dot"></span> <span class="led-badge-text">En Vivo</span>
-        </span>
-        <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
-          <span class="nav-toggle-bar"></span>
-          <span class="nav-toggle-bar"></span>
-          <span class="nav-toggle-bar"></span>
-        </button>
-      </div>
-      <nav class="nav-menu" id="navMenu" aria-label="Menú principal">
-        <ul class="nav-list">
-          <li class="nav-item"><a class="nav-link" href="#inicio">Inicio</a></li>
-          <li class="nav-item"><a class="nav-link" href="#materiales">Materiales</a></li>
-          <li class="nav-item"><a class="nav-link" href="#solicitudes">Solicitudes</a></li>
-          <li class="nav-item"><a class="nav-link" href="#recepcion">Recepción</a></li>
-          <li class="nav-item"><a class="nav-link" href="#lotes">Lotes</a></li>
-          <li class="nav-item"><a class="nav-link" href="#subproductos">Subproductos</a></li>
-          <li class="nav-item"><a class="nav-link" href="#indicadores">Indicadores</a></li>
-          <li class="nav-item"><a class="nav-link" href="#admin">Admin</a></li>
-        </ul>
-      </nav>
+      <a class="nav-brand" href="#inicio" aria-label="Bioterra, inicio"><img src="assets/brand.svg" alt="" width="44" height="44"><span class="brand-type">Bioterra<span>MATERIA EN MOVIMIENTO</span></span></a>
+      <nav class="nav-menu" id="navMenu" aria-label="Navegación principal"><ul class="nav-list">
+        <li><a class="nav-link" href="#ciclo">El proceso</a></li>
+        <li><a class="nav-link" href="#productos">Resultados</a></li>
+        <li><a class="nav-link" href="#ubicacion">Territorio</a></li>
+        <li><a class="nav-link" href="#materiales">Qué recibimos</a></li>
+      </ul></nav>
+      <div class="nav-actions"><a class="operation-link" href="#recepcion">Operación <span>↗</span></a><a class="nav-participate" href="#solicitudes">Sumate al ciclo <span>↗</span></a><button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-controls="navDrawer" aria-expanded="false"><span class="nav-toggle-bar"></span><span class="nav-toggle-bar"></span></button></div>
     </div>
   </header>
-
-  <div class="nav-drawer" id="navDrawer" aria-hidden="true">
-    <div class="nav-drawer-header">
-      <span class="nav-drawer-title">Menú</span>
-      <button class="nav-drawer-close" id="navDrawerClose" aria-label="Cerrar menú">×</button>
-    </div>
+  <div class="nav-drawer" id="navDrawer" role="dialog" aria-modal="true" aria-label="Menú de navegación" aria-hidden="true" inert>
+    <div class="nav-drawer-header"><span class="nav-drawer-title">El ciclo empieza acá.</span><button class="nav-drawer-close" id="navDrawerClose" aria-label="Cerrar menú">×</button></div>
     <ul class="nav-drawer-list">
-      <li class="nav-drawer-item"><a class="nav-drawer-link" href="#inicio">Inicio</a></li>
-      <li class="nav-drawer-item"><a class="nav-drawer-link" href="#materiales">Materiales</a></li>
-      <li class="nav-drawer-item"><a class="nav-drawer-link" href="#solicitudes">Solicitudes</a></li>
-      <li class="nav-drawer-item"><a class="nav-drawer-link" href="#recepcion">Recepción</a></li>
-      <li class="nav-drawer-item"><a class="nav-drawer-link" href="#lotes">Lotes</a></li>
-      <li class="nav-drawer-item"><a class="nav-drawer-link" href="#subproductos">Subproductos</a></li>
-      <li class="nav-drawer-item"><a class="nav-drawer-link" href="#indicadores">Indicadores</a></li>
-      <li class="nav-drawer-item"><a class="nav-drawer-link" href="#admin">Admin</a></li>
+      <li><a class="nav-drawer-link" href="#inicio">El proyecto</a></li>
+      <li><a class="nav-drawer-link" href="#ciclo">El proceso</a></li>
+      <li><a class="nav-drawer-link" href="#productos">Resultados</a></li>
+      <li><a class="nav-drawer-link" href="#ubicacion">Territorio</a></li>
+      <li><a class="nav-drawer-link" href="#materiales">Qué recibimos</a></li>
+      <li><a class="nav-drawer-link" href="#solicitudes">Sumar un aporte ↗</a></li>
     </ul>
+    <p class="drawer-label">ESPACIO DE OPERACIÓN</p>
+    <ul class="nav-drawer-list drawer-operations"><li><a class="nav-drawer-link" href="#recepcion">Recepción</a></li><li><a class="nav-drawer-link" href="#lotes">Lotes y procesos</a></li><li><a class="nav-drawer-link" href="#subproductos">Subproductos</a></li><li><a class="nav-drawer-link" href="#indicadores">Impacto</a></li><li><a class="nav-drawer-link" href="#admin">Configuración</a></li></ul>
   </div>
   <div class="nav-overlay" id="navOverlay"></div>
-
-  <main id="app-view">
-    <!-- Vistas dinámicas reactivas montadas por el Router -->
-  </main>
-
-  <footer class="footer">
-    <div class="container footer-content">
-      <p class="footer-text">Centro Comunitario de Aprovechamiento de Biomasa Vegetal – Proyecto Biogestor</p>
-      <p class="footer-text footer-text-sm">Diseñado con enfoque responsive web · Mobile-first</p>
-    </div>
-  </footer>
-
-  <!-- Leaflet Maps JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script type="module" src="src/main.js?v=2.0"></script>
+  <nav class="operation-nav" id="operationNav" aria-label="Navegación de operación" hidden><div class="container"><span>ESPACIO DE TRABAJO</span><a href="#solicitudes">Aportes</a><a href="#recepcion">Recepción</a><a href="#lotes">Lotes y procesos</a><a href="#subproductos">Subproductos</a><a href="#indicadores">Impacto</a><a href="#admin">Configuración</a></div></nav>
+  <main id="app-view" tabindex="-1"></main>
+  <footer class="bioterra-footer"><div class="container"><div class="footer-top"><p>MATERIA EN MOVIMIENTO.<br>COMUNIDAD EN ACCIÓN.</p><a class="text-link" href="#inicio">Volver al inicio ↑</a></div><div class="footer-wordmark" aria-label="Bioterra">BIOTERRA<span>↗</span></div><div class="footer-bottom"><span>Bioeconomía comunitaria · Masaya, Nicaragua</span><span>Prototipo demostrativo · Registros en este dispositivo</span></div><details class="photo-credits"><summary>Imágenes libres y sus fuentes</summary><p>Fotografías de referencia: <a href="https://commons.wikimedia.org/wiki/File:Biogasanlage-01.jpg" target="_blank" rel="noopener noreferrer">Cec-clp / producción de biogás (CC0)</a>; <a href="https://commons.wikimedia.org/wiki/File:Biodigester.JPG" target="_blank" rel="noopener noreferrer">Kyle Butler / biodigestor (dominio público)</a>; <a href="https://commons.wikimedia.org/wiki/File:M%C3%A9lange_compost_2.jpg" target="_blank" rel="noopener noreferrer">Benitronne / compostaje (CC0)</a>. El bidón de biol es una ilustración propia. Las fotografías no documentan las instalaciones del piloto.</p></details></div></footer>
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script type="module" src="src/main.js"></script>
 </body>
-
 </html>

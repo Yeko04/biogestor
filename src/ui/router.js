@@ -6,7 +6,8 @@ import { store } from '../store/store.js';
 import { initResponsiveTables } from './tables-responsive.js';
 import { notifyStoreAction } from './components/toast.js';
 
-import { renderHomeView, attachHomeEvents } from './views/home-view.js?v=2.0';
+import { renderHomeView, attachHomeEvents } from './views/home-view.js';
+import { destroyInteractiveMap } from './components/interactive-map.js';
 import { renderSolicitudesView, attachSolicitudesEvents } from './views/solicitudes-view.js';
 import { renderRecepcionView, attachRecepcionEvents } from './views/recepcion-view.js';
 import { renderLotesView, attachLotesEvents } from './views/lotes-view.js';
@@ -18,6 +19,8 @@ const routes = {
   '#inicio': { render: renderHomeView, attach: attachHomeEvents },
   '#materiales': { render: renderHomeView, attach: attachHomeEvents, scrollTo: 'materiales' },
   '#ubicacion': { render: renderHomeView, attach: attachHomeEvents, scrollTo: 'ubicacion' },
+  '#ciclo': { render: renderHomeView, attach: attachHomeEvents, scrollTo: 'ciclo' },
+  '#productos': { render: renderHomeView, attach: attachHomeEvents, scrollTo: 'productos' },
   '#solicitudes': { render: renderSolicitudesView, attach: attachSolicitudesEvents },
   '#recepcion': { render: renderRecepcionView, attach: attachRecepcionEvents },
   '#lotes': { render: renderLotesView, attach: attachLotesEvents },
@@ -74,6 +77,16 @@ class AppRouter {
     if (!this.container) return;
 
     const route = routes[this.currentHash] || routes['#inicio'];
+    destroyInteractiveMap();
+    const operational = !['#inicio', '#materiales', '#ciclo', '#productos', '#ubicacion'].includes(this.currentHash);
+    document.body.classList.toggle('is-operation', operational);
+    document.getElementById('operationNav').hidden = !operational;
+    document.querySelectorAll('.operation-nav a').forEach((link) => {
+      const active = link.getAttribute('href') === this.currentHash;
+      link.classList.toggle('active', active);
+      if (active) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
     this.container.innerHTML = route.render();
 
     // Attach view-specific interactive events

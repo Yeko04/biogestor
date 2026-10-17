@@ -5,7 +5,7 @@
 import { initNav } from './ui/nav.js';
 import { initResponsiveTables } from './ui/tables-responsive.js';
 import { loadData } from './storage/localstore.js';
-import { router } from './ui/router.js?v=2.0';
+import { router } from './ui/router.js';
 
 function init() {
   // 1. Initialize Navigation Drawer & Shell Interactions
@@ -18,7 +18,7 @@ function init() {
   // 3. Initialize Client-Side Router
   router.init('app-view');
 
-  console.info('Biogestor: UI Reactiva y Router inicializados correctamente.');
+  console.info('Bioterra: interfaz y navegación inicializadas.');
 }
 
 document.addEventListener('DOMContentLoaded', init);

@@ -78,7 +78,7 @@ export function getDefaultState() {
             modalidad: MODALIDAD_ENTREGA.ENTREGA_PROPIA,
             recogida_habilitada: true,
             direccion: 'Módulo 14, Mercado Central',
-            coordenadas: { lat: 12.136, lng: -86.251 },
+            coordenadas: { lat: 11.9768, lng: -86.0865 },
             observaciones_acceso: 'Entrada por portón norte',
             foto_url: null
           },
@@ -130,7 +130,7 @@ export function getDefaultState() {
             modalidad: MODALIDAD_ENTREGA.RECOGIDA,
             recogida_habilitada: true,
             direccion: 'Costado sur del Parque Central',
-            coordenadas: { lat: 12.14, lng: -86.255 },
+            coordenadas: { lat: 11.9666, lng: -86.1025 },
             observaciones_acceso: 'Camión puede estacionar junto a la glorieta',
             foto_url: null
           },

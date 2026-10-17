@@ -1,0 +1,6 @@
+{
+  "name": "bioterra",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "node scripts/serve.mjs", "start": "node scripts/serve.mjs", "test": "node --test tests/*.test.mjs" }
+}

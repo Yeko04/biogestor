@@ -78,7 +78,7 @@ export function crearSolicitud(payload) {
       modalidad: payload.entrega?.modalidad || 'entrega_propia',
       recogida_habilitada: !!payload.entrega?.recogida_habilitada,
       direccion: payload.entrega?.direccion || '',
-      coordenadas: payload.entrega?.coordenadas || { lat: 0, lng: 0 },
+      coordenadas: payload.entrega?.coordenadas || null,
       observaciones_acceso: payload.entrega?.observaciones_acceso || null,
       foto_url: payload.entrega?.foto_url || null
     },

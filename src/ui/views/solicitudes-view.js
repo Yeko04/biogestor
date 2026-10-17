@@ -16,11 +16,11 @@ export function renderSolicitudesView() {
       <div class="container">
         <div class="view-header">
           <div class="view-title-group">
-            <h1 class="section-title" style="margin-bottom:0;">Gestión de Solicitudes de Biomasa</h1>
-            <p class="view-subtitle">Registro de material disponible por generadores urbanos (parques, mercados, podas).</p>
+            <h1 class="section-title" style="margin-bottom:0;">Aportes de la comunidad.</h1>
+            <p class="view-subtitle">Cada resto tiene una nueva posibilidad. Registrá tu material y coordiná su aprovechamiento.</p>
           </div>
           <button class="btn btn-primary" id="btnToggleSolForm">
-            + Nueva Solicitud
+            + Registrar un aporte
           </button>
         </div>
 

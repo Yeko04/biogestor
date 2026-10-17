@@ -1,10 +1,16 @@
-# Biogestor - Centro Comunitario de Aprovechamiento de Biomasa Vegetal
+# Bioterra — Materia en movimiento
+
+## Identidad visual local de Bioterra
+
+Ejecutar `node scripts/serve.mjs` y abrir http://localhost:5500. No requiere instalar dependencias. La identidad visual, el mapa interactivo y las comprobaciones están documentados en [Identidad de Bioterra](docs/bioterra-identidad.md).
+
+Pruebas: `node --test tests/map-data.test.mjs`.
 
 Sistema web integral para la gestión, recepción, clasificación (triaje), procesamiento y control de inventario de biomasa vegetal urbana, orientado a evitar quemas a cielo abierto y generar subproductos de alto valor (Biol, Biogás y Biochar).
 
 ## Arquitectura del Proyecto
 
-El sistema está diseñado bajo una arquitectura modular en JavaScript Vanilla (ES Modules) sin dependencias externas pesadas, garantizando rendimiento, mantenibilidad y funcionamiento offline mediante `localStorage`.
+El sistema utiliza JavaScript Vanilla (ES Modules) y guarda los registros en `localStorage`. Las fotografías, tipografías y Leaflet están incluidos en el repositorio; los fondos cartográficos requieren conexión a Internet.
 
 ```text
 biogestor/

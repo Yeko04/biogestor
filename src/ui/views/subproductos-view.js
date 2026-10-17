@@ -20,8 +20,8 @@ export function renderSubproductosView() {
       <div class="container">
         <div class="view-header">
           <div class="view-title-group">
-            <h1 class="section-title" style="margin-bottom:0;">Control de Subproductos y Salidas</h1>
-            <p class="view-subtitle">Inventario de Biol líquido, Biochar y distribución comunitaria para agricultura urbana.</p>
+            <h1 class="section-title" style="margin-bottom:0;">Lo que vuelve a la tierra.</h1>
+            <p class="view-subtitle">Biol, biochar y nuevas posibilidades. Revisá las existencias y registrá cada entrega.</p>
           </div>
           <button class="btn btn-primary" id="btnToggleSalidaForm">+ Registrar Salida / Entrega</button>
         </div>

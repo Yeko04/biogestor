@@ -22,8 +22,8 @@ export function renderRecepcionView() {
       <div class="container">
         <div class="view-header">
           <div class="view-title-group">
-            <h1 class="section-title" style="margin-bottom:0;">Recepción y Triaje de Biomasa</h1>
-            <p class="view-subtitle">Pesaje, separación y clasificación física manual (Triage) a la entrada del centro.</p>
+            <h1 class="section-title" style="margin-bottom:0;">Cada aporte, bien recibido.</h1>
+            <p class="view-subtitle">Pesá, revisá y clasificá el material. Acá empieza su siguiente vida.</p>
           </div>
           ${
             !capacidad.recepciones_pausadas
