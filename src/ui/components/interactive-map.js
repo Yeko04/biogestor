@@ -5,7 +5,12 @@ import { getCoordinates, classifyMapRequests, filterMapRequests, requestUnit, re
 
 let mapInstance = null;
 let resizeObserver = null;
+let pickupMapInstance = null;
+let pickupMarkerInstance = null;
 export function destroyInteractiveMap() {
+  pickupMapInstance?.remove();
+  pickupMapInstance = null;
+  pickupMarkerInstance = null;
   resizeObserver?.disconnect();
   resizeObserver = null;
   mapInstance?.remove();
@@ -138,4 +143,147 @@ export function initInteractiveMap(containerId = 'map') {
   renderMarkers();
   resizeObserver = new ResizeObserver(() => mapInstance?.invalidateSize());
   resizeObserver.observe(container);
+}
+
+// Pickup location editor integrated from the latest main branch.
+export function initPickupMap(containerId = 'mapRecogida', options = {}) {
+  const container = document.getElementById(containerId);
+  if (!container || typeof L === 'undefined') {
+    return null;
+  }
+
+  // Destroy previous pickup map if active
+  if (pickupMapInstance) {
+    try {
+      pickupMapInstance.remove();
+    } catch (e) {
+      console.warn('Error al limpiar mapa previo de recogida:', e);
+    }
+    pickupMapInstance = null;
+    pickupMarkerInstance = null;
+  }
+
+  const defaultLat = options.initialLat || 11.9744;
+  const defaultLng = options.initialLng || -86.0942;
+  const hasInitialCoords = !!options.hasCoords;
+
+  const map = L.map(containerId, {
+    center: [defaultLat, defaultLng],
+    zoom: hasInitialCoords ? 15 : 13,
+    zoomControl: true,
+    scrollWheelZoom: false
+  });
+
+  pickupMapInstance = map;
+
+  // OpenStreetMap layer for street readability
+  const streetLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap',
+    maxZoom: 19
+  });
+  streetLayer.addTo(map);
+
+  // Custom marker for pickup truck location
+  const pickupIcon = L.divIcon({
+    className: 'pickup-marker-icon',
+    html: `
+      <div class="pickup-pin-wrapper">
+        <div class="pickup-pin">🚛</div>
+      </div>
+    `,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -18]
+  });
+
+  const updateCoordinates = (lat, lng) => {
+    const latField = document.getElementById('solLat');
+    const lngField = document.getElementById('solLng');
+    const badge = document.getElementById('coordsBadge');
+    const clearBtn = document.getElementById('btnLimpiarCoords');
+
+    if (latField) latField.value = lat.toFixed(6);
+    if (lngField) lngField.value = lng.toFixed(6);
+
+    if (badge) {
+      badge.textContent = `📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      badge.style.color = '#15803d';
+      badge.style.background = 'rgba(34, 197, 94, 0.15)';
+      badge.style.border = '1px solid rgba(34, 197, 94, 0.4)';
+    }
+
+    if (clearBtn) clearBtn.style.display = 'inline-flex';
+
+    if (typeof options.onLocationChange === 'function') {
+      options.onLocationChange({ lat, lng });
+    }
+  };
+
+  const createOrMoveMarker = (lat, lng, shouldPan = true) => {
+    if (!pickupMarkerInstance) {
+      pickupMarkerInstance = L.marker([lat, lng], {
+        icon: pickupIcon,
+        draggable: true
+      }).addTo(map);
+
+      pickupMarkerInstance.on('dragend', (e) => {
+        const pos = e.target.getLatLng();
+        updateCoordinates(pos.lat, pos.lng);
+      });
+    } else {
+      pickupMarkerInstance.setLatLng([lat, lng]);
+    }
+
+    if (shouldPan) {
+      map.panTo([lat, lng]);
+    }
+    updateCoordinates(lat, lng);
+  };
+
+  if (hasInitialCoords) {
+    createOrMoveMarker(defaultLat, defaultLng, false);
+  }
+
+  // Click on map to place or adjust marker
+  map.on('click', (e) => {
+    createOrMoveMarker(e.latlng.lat, e.latlng.lng);
+  });
+
+  const clearCoords = () => {
+    if (pickupMarkerInstance) {
+      map.removeLayer(pickupMarkerInstance);
+      pickupMarkerInstance = null;
+    }
+    const latField = document.getElementById('solLat');
+    const lngField = document.getElementById('solLng');
+    const badge = document.getElementById('coordsBadge');
+    const clearBtn = document.getElementById('btnLimpiarCoords');
+
+    if (latField) latField.value = '';
+    if (lngField) lngField.value = '';
+    if (badge) {
+      badge.textContent = 'Sin coordenadas fijadas (opcional)';
+      badge.style.color = 'var(--color-text-secondary)';
+      badge.style.background = 'var(--color-gray-bg)';
+      badge.style.border = '1px solid var(--color-border)';
+    }
+    if (clearBtn) clearBtn.style.display = 'none';
+  };
+
+  const clearBtn = document.getElementById('btnLimpiarCoords');
+  if (clearBtn) {
+    clearBtn.onclick = (e) => {
+      e.preventDefault();
+      clearCoords();
+    };
+  }
+
+  return {
+    map,
+    setCoordinates: (lat, lng) => createOrMoveMarker(lat, lng),
+    clearCoordinates: clearCoords,
+    invalidateSize: () => {
+      setTimeout(() => map.invalidateSize(), 150);
+    }
+  };
 }
