@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Centro Comunitario de Aprovechamiento de Biomasa Vegetal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body>
+  <header class="navbar">
+    <div class="container nav-container">
+      <div class="nav-brand">
+        <span class="nav-brand-title">Biogestor</span>
+        <span class="nav-brand-subtitle">Aprovechamiento de Biomasa</span>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+      </button>
+      <nav class="nav-menu" id="navMenu" aria-label="Menú principal">
+        <ul class="nav-list">
+          <li class="nav-item"><a class="nav-link" href="#inicio">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link" href="#materiales">Materiales</a></li>
+          <li class="nav-item"><a class="nav-link" href="#solicitudes">Solicitudes</a></li>
+          <li class="nav-item"><a class="nav-link" href="#recepcion">Recepción</a></li>
+          <li class="nav-item"><a class="nav-link" href="#lotes">Lotes</a></li>
+          <li class="nav-item"><a class="nav-link" href="#subproductos">Subproductos</a></li>
+          <li class="nav-item"><a class="nav-link" href="#indicadores">Indicadores</a></li>
+          <li class="nav-item"><a class="nav-link" href="#admin">Admin</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="nav-drawer" id="navDrawer" aria-hidden="true">
+      <div class="nav-drawer-header">
+        <span class="nav-drawer-title">Menú</span>
+        <button class="nav-drawer-close" id="navDrawerClose" aria-label="Cerrar menú">×</button>
+      </div>
+      <ul class="nav-drawer-list">
+        <li class="nav-drawer-item"><a class="nav-drawer-link" href="#inicio">Inicio</a></li>
+        <li class="nav-drawer-item"><a class="nav-drawer-link" href="#materiales">Materiales</a></li>
+        <li class="nav-drawer-item"><a class="nav-drawer-link" href="#solicitudes">Solicitudes</a></li>
+        <li class="nav-drawer-item"><a class="nav-drawer-link" href="#recepcion">Recepción</a></li>
+        <li class="nav-drawer-item"><a class="nav-drawer-link" href="#lotes">Lotes</a></li>
+        <li class="nav-drawer-item"><a class="nav-drawer-link" href="#subproductos">Subproductos</a></li>
+        <li class="nav-drawer-item"><a class="nav-drawer-link" href="#indicadores">Indicadores</a></li>
+        <li class="nav-drawer-item"><a class="nav-drawer-link" href="#admin">Admin</a></li>
+      </ul>
+    </div>
+    <div class="nav-overlay" id="navOverlay"></div>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="container">
+        <div class="hero-content">
+          <h1 class="hero-title">Centro Comunitario de Aprovechamiento de Biomasa Vegetal</h1>
+          <p class="hero-subtitle">Evitar quemas informales. Aprovechar la poda y biomasa vegetal urbana.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-block-sm" href="#solicitudes">Tengo material disponible</a>
+            <a class="btn btn-outline btn-block-sm" href="#materiales">Qué podemos recibir</a>
+            <a class="btn btn-outline btn-block-sm" href="#ubicacion">Cómo llegar</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="materiales">
+      <div class="container">
+        <h2 class="section-title">Materiales aceptados</h2>
+        <div class="grid grid-md-2 grid-lg-3">
+          <article class="card">
+            <div class="card-header">
+              <h3 class="card-title">Poda y ramas</h3>
+              <span class="badge badge-success">Aceptado</span>
+            </div>
+            <p class="card-text">Seco/Duro → Triturado/Machecado → Pirólisis (Kon-Tiki elevado) → Biochar</p>
+          </article>
+          <article class="card">
+            <div class="card-header">
+              <h3 class="card-title">Hojas, césped y restos finos</h3>
+              <span class="badge badge-success">Aceptado</span>
+            </div>
+            <p class="card-text">Húmedo/Blando → Ingreso directo al biodigestor → Biogás + Biol</p>
+          </article>
+          <article class="card">
+            <div class="card-header">
+              <h3 class="card-title">Restos vegetales de mercados</h3>
+              <span class="badge badge-success">Aceptado</span>
+            </div>
+            <p class="card-text">Húmedo/Blando → Ingreso directo al biodigestor</p>
+          </article>
+          <article class="card">
+            <div class="card-header">
+              <h3 class="card-title">Frutas y verduras (preparación)</h3>
+              <span class="badge badge-success">Aceptado</span>
+            </div>
+            <p class="card-text">Solo restos vegetales. Sin alimentos cocinados.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="indicadores">
+      <div class="container">
+        <h2 class="section-title">Indicadores</h2>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">% Desviación del descarte</div>
+            <div class="kpi-value kpi-success">≥ 70%</div>
+            <div class="kpi-meta">Meta mínima</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Aceptados vs Rechazados</div>
+            <div class="kpi-value">Estimado / Verificado</div>
+            <div class="kpi-meta">Separados por unidad (kg / L / m³)</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Biol + Biogás</div>
+            <div class="kpi-value">Real / Simulado</div>
+            <div class="kpi-meta">Etiquetado correctamente</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Biochar</div>
+            <div class="kpi-value">Pirólisis Kon-Tiki</div>
+            <div class="kpi-meta">Seco/Duro → Triturado/Machecado</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ubicacion">
+      <div class="container">
+        <h2 class="section-title">Ubicación</h2>
+        <div class="map-wrapper">
+          <div class="map-placeholder" aria-label="Mapa del centro comunitario">
+            <span class="map-placeholder-text">Mapa operativo</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <p class="footer-text">Centro Comunitario de Aprovechamiento de Biomasa Vegetal – Proyecto Biogestor</p>
+      <p class="footer-text footer-text-sm">Diseñado con enfoque responsive web · Mobile-first</p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

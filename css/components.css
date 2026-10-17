@@ -1,0 +1,23 @@
+﻿.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-xs); padding: 0.85rem 1.6rem; border-radius: 999px; font-weight: 600; font-size: 0.98rem; transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease; text-align: center; }
+.btn-block-sm { width: 100%; }
+.btn-primary { background: var(--color-primary); color: #fff; box-shadow: var(--shadow-md); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: var(--shadow-lg); }
+.btn-outline { background: transparent; color: var(--color-primary); border: 2px solid rgba(58,154,64,0.5); }
+.btn-outline:hover { background: rgba(58,154,64,0.08); }
+.card { background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--color-border); padding: clamp(1rem,2vw,1.4rem); display: flex; flex-direction: column; gap: var(--space-sm); }
+.card-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-sm); }
+.card-title { font-size: clamp(1.05rem,1.4vw,1.2rem); font-weight: 700; color: var(--color-text); }
+.card-text { color: var(--color-text-secondary); font-size: 0.98rem; }
+.badge { display: inline-flex; align-items: center; padding: 0.35rem 0.8rem; border-radius: 999px; font-size: 0.88rem; font-weight: 600; }
+.badge-success { background: rgba(34,197,94,0.16); color: #15803d; }
+.badge-info { background: var(--color-blue-bg); color: var(--color-info); }
+.badge-warning { background: var(--color-warn-bg); color: #b45309; }
+.badge-danger { background: var(--color-red-bg); color: var(--color-danger); }
+.kpi-card { background: var(--color-surface); border-radius: var(--radius-lg); border: 1px solid var(--color-border); box-shadow: var(--shadow-sm); padding: clamp(1rem,2vw,1.6rem); display: flex; flex-direction: column; gap: var(--space-xs); }
+.kpi-label { font-size: 0.95rem; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.08em; }
+.kpi-value { font-size: clamp(1.8rem,4vw,2.8rem); font-weight: 800; color: var(--color-text); }
+.kpi-success { color: #166534; }
+.kpi-meta { font-size: 0.9rem; color: var(--color-text-secondary); }
+.map-wrapper { width: 100%; }
+.map-placeholder { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-lg); border: 1px dashed rgba(58,154,64,0.5); background: repeating-linear-gradient(45deg, rgba(58,154,64,0.06) 0 12px, transparent 12px 24px); display: flex; align-items: center; justify-content: center; text-align: center; padding: var(--space-md); }
+.map-placeholder-text { font-weight: 600; color: var(--color-primary); }
