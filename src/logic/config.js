@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Config/Admin rules
  * Process conditions, enable/disable with confirmation, pause requires reason
  * Updated for pyrolysis+biochar flow
@@ -29,15 +29,29 @@ export function canPauseReceptions(configCentro = {}) {
 }
 
 export function setReceptionsPaused(configCentro = {}, paused, motivo = '') {
-  configCentro.recepciones_pausadas = !!paused;
-  if (paused) {
+  const isPaused = !!paused;
+  if (isPaused) {
     const m = (motivo || '').trim();
-    if (m.length === 0) return { ok: false, error: 'Motivo de pausa is required when pausing receptions.' };
-    configCentro.motivo_pausa = m;
-  } else {
-    configCentro.motivo_pausa = null;
+    if (m.length === 0) {
+      return { ok: false, error: 'Motivo de pausa is required when pausing receptions.', configCentro };
+    }
+    return {
+      ok: true,
+      configCentro: {
+        ...configCentro,
+        recepciones_pausadas: true,
+        motivo_pausa: m
+      }
+    };
   }
-  return { ok: true, configCentro };
+  return {
+    ok: true,
+    configCentro: {
+      ...configCentro,
+      recepciones_pausadas: false,
+      motivo_pausa: null
+    }
+  };
 }
 
 export function isCategoryPublicActive(mat = {}) {
@@ -45,7 +59,7 @@ export function isCategoryPublicActive(mat = {}) {
 }
 
 export function getPublicMaterials(catalogo = []) {
-  return (catalogo || []).filter(isCategoryPublicActive).sort((a,b)=>(a.orden||0)-(b.orden||0));
+  return (catalogo || []).filter(isCategoryPublicActive).sort((a, b) => (a.orden || 0) - (b.orden || 0));
 }
 
 export function validateProcessConfig(proc = {}) {
@@ -53,7 +67,5 @@ export function validateProcessConfig(proc = {}) {
   if (!proc.nombre) errors.push('Process name is required.');
   if (!proc.clave) errors.push('Process key (clave) is required.');
   if (!Array.isArray(proc.etapas) || proc.etapas.length === 0) errors.push('Process must have at least one stage.');
-  if (typeof proc.activo !== 'boolean') proc.activo = true;
-  if (typeof proc.permite_asignacion_manual !== 'boolean') proc.permite_asignacion_manual = true;
   return { valid: errors.length === 0, errors };
 }

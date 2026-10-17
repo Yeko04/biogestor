@@ -1,13 +1,14 @@
-﻿/**
+/**
  * Subproducts logic - Stock control
  * Never allow output > available. disponible = producido - destinado
  */
 
 import { UNIDADES, CONDICION_CALIDAD } from './constants.js';
+import { generateId } from './id.js';
 
 export function createEmptySubproduct() {
   return {
-    id: `sp_${Date.now().toString(36)}`,
+    id: generateId('sp'),
     codigo: 'SP-000',
     lote_id: null,
     lote_codigo: null,
@@ -29,12 +30,14 @@ export function createEmptySubproduct() {
 export function recalcSubproductStock(sp = {}) {
   const prod = Number(sp.cantidad_producida) || 0;
   const dest = Number(sp.cantidad_destinada) || 0;
-  let disp = prod - dest;
-  if (disp < 0) disp = 0;
-  sp.cantidad_destinada = Math.max(0, dest);
-  sp.cantidad_producida = Math.max(0, prod);
-  sp.cantidad_disponible = disp;
-  return sp;
+  const disp = Math.max(0, prod - dest);
+
+  return {
+    ...sp,
+    cantidad_producida: Math.max(0, prod),
+    cantidad_destinada: Math.max(0, dest),
+    cantidad_disponible: disp
+  };
 }
 
 export function canCreateOutput(sp = {}, cantidadEntregar = 0) {
@@ -49,24 +52,26 @@ export function applyOutput(sp = {}, cantidadEntregar = 0) {
   const check = canCreateOutput(sp, cantidadEntregar);
   if (!check.ok) return { ok: false, ...check, subproduct: sp };
   const ce = Number(cantidadEntregar) || 0;
-  sp.cantidad_destinada = (Number(sp.cantidad_destinada) || 0) + ce;
-  recalcSubproductStock(sp);
-  return { ok: true, subproduct: sp };
+  const updated = {
+    ...sp,
+    cantidad_destinada: (Number(sp.cantidad_destinada) || 0) + ce
+  };
+  return { ok: true, subproduct: recalcSubproductStock(updated) };
 }
 
 export function validateSubproduct(sp = {}) {
   const errors = [];
   if (!sp.lote_id) errors.push('Subproduct must be linked to a lot (lote_id).');
   if (!sp.tipo) errors.push('Subproduct type (tipo) is required.');
-  if (sp.cantidad_producida < 0) errors.push('cantidad_producida cannot be negative.');
-  if (sp.cantidad_disponible < 0) errors.push('cantidad_disponible cannot be negative.');
-  if (sp.cantidad_destinada < 0) errors.push('cantidad_destinada cannot be negative.');
+  if (Number(sp.cantidad_producida) < 0) errors.push('cantidad_producida cannot be negative.');
+  if (Number(sp.cantidad_disponible) < 0) errors.push('cantidad_disponible cannot be negative.');
+  if (Number(sp.cantidad_destinada) < 0) errors.push('cantidad_destinada cannot be negative.');
   if (sp.unidad !== UNIDADES.KG && sp.unidad !== UNIDADES.LITROS) {
     errors.push('unidad must be kg or L.');
   }
   if (typeof sp.simulado !== 'boolean') errors.push('simulado must be boolean.');
-  recalcSubproductStock(sp);
-  return { valid: errors.length === 0, errors, subproduct: sp };
+  const calculated = recalcSubproductStock(sp);
+  return { valid: errors.length === 0, errors, subproduct: calculated };
 }
 
 export function validateSalida(salida = {}) {

@@ -1,4 +1,4 @@
-﻿export function initResponsiveTables() {
+export function initResponsiveTables() {
   const wrappers = document.querySelectorAll('[data-responsive="table"]');
   wrappers.forEach((wrap) => {
     const table = wrap.querySelector('table');

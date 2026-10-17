@@ -1,9 +1,10 @@
-﻿/**
+/**
  * Lots logic - Agrupación, estados, seguimientos (Real/Simulado)
  * Húmedo/Blando -> Biodigestor | Seco/Duro -> Triturado/Machecado -> Pirólisis -> Biochar
  */
 
 import { ESTADOS_LOTE, ETAPAS_SEGUIMIENTO, UMBRALES } from './constants.js';
+import { generateId } from './id.js';
 
 export function createEmptyLotComposition() {
   return {
@@ -41,11 +42,14 @@ export function updateLotLossesFromFollowUps(lote = {}) {
   for (const f of s) {
     totalLoss += Number(f.perdidas_estimadas_kg) || 0;
   }
-  if (!lote.composicion) lote.composicion = createEmptyLotComposition();
-  lote.composicion.perdidas_estimadas_kg = totalLoss;
-  const acc = lote.composicion.aceptada_total_kg || 0;
-  lote.composicion.disponible_aprovechamiento_kg = Math.max(0, acc - totalLoss);
-  return lote;
+  const composicion = lote.composicion ? { ...lote.composicion } : createEmptyLotComposition();
+  composicion.perdidas_estimadas_kg = totalLoss;
+  const acc = composicion.aceptada_total_kg || 0;
+  composicion.disponible_aprovechamiento_kg = Math.max(0, acc - totalLoss);
+  return {
+    ...lote,
+    composicion
+  };
 }
 
 export function canAdvanceState(currentState, nextState) {
@@ -66,7 +70,7 @@ export function canAdvanceState(currentState, nextState) {
 
 export function createFollowUpBase() {
   return {
-    id: `seg_${Date.now().toString(36)}`,
+    id: generateId('seg'),
     fecha: new Date().toISOString(),
     responsable_id: null,
     etapa: ETAPAS_SEGUIMIENTO.EN_TRATAMIENTO,

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Process rules - Procesos configurables
  * Húmedo/Blando -> Biodigestor | Seco/Duro -> Triturado/Machecado -> Pirólisis -> Biochar
  * Mezcla (Control) | Rechazo/Descartes
@@ -71,10 +71,10 @@ export function processMatchesClassification(clasificacion = {}, proceso = {}) {
   return tipoOk && tamOk && humOk && contOk;
 }
 
-export function getProcessByKey(clave) {
-  return DEFAULT_PROCESSES.find(p => p.clave === clave) || null;
+export function getProcessByKey(clave, processes = DEFAULT_PROCESSES) {
+  return (processes || []).find(p => p.clave === clave) || null;
 }
 
-export function getActiveProcesses() {
-  return DEFAULT_PROCESSES.filter(p => p.activo);
+export function getActiveProcesses(processes = DEFAULT_PROCESSES) {
+  return (processes || []).filter(p => p.activo);
 }
