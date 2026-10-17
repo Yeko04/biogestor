@@ -6,8 +6,8 @@ import { store } from '../store/store.js';
 import { initResponsiveTables } from './tables-responsive.js';
 import { notifyStoreAction } from './components/toast.js';
 
-import { renderHomeView, attachHomeEvents } from './views/home-view.js?v=2.0';
-import { renderSolicitudesView, attachSolicitudesEvents } from './views/solicitudes-view.js';
+import { renderHomeView, attachHomeEvents } from './views/home-view.js?v=3.0';
+import { renderSolicitudesView, attachSolicitudesEvents } from './views/solicitudes-view.js?v=3.0';
 import { renderRecepcionView, attachRecepcionEvents } from './views/recepcion-view.js';
 import { renderLotesView, attachLotesEvents } from './views/lotes-view.js';
 import { renderSubproductosView, attachSubproductosEvents } from './views/subproductos-view.js';

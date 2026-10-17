@@ -5,7 +5,7 @@
 import { store } from '../../store/store.js';
 import { selectActivePublicMaterials, selectKpiTotals, selectStockSummary, selectCapacidad } from '../../store/selectors.js';
 import { renderBiodigestorSimulator, startTelemetryTicker } from '../components/biodigestor-sim.js';
-import { initInteractiveMap } from '../components/interactive-map.js?v=2.1';
+import { initInteractiveMap } from '../components/interactive-map.js?v=3.0';
 
 export function renderHomeView() {
   const state = store.getState();

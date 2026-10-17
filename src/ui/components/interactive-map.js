@@ -1,34 +1,38 @@
 /**
  * Interactive Leaflet Map Component - Biogestor
  * Coordinates: Masaya, Nicaragua [11.9744, -86.0942]
- * Features: Dark Matter tiles + Satellite layer, Custom Radar Pulse Marker, Glassmorphism Popup
+ * 
+ * Features:
+ * 1. Public Center View: Esri Satellite + OSM, Radar Marker, Rich Popup (Horarios, Contacto, Materiales, "Cómo llegar")
+ * 2. Form Pickup Map: Draggable marker, click-to-place, manual coordinates sync, on-demand geolocation
  */
 
 import { store } from '../../store/store.js';
 import { selectCentro, selectCapacidad } from '../../store/selectors.js';
 
-let mapInstance = null;
+let publicMapInstance = null;
+let pickupMapInstance = null;
+let pickupMarkerInstance = null;
 
+/**
+ * --------------------------------------------------------------------------
+ * 1. PUBLIC CENTER MAP
+ * --------------------------------------------------------------------------
+ */
 export function initInteractiveMap(containerId = 'map') {
   const mapElement = document.getElementById(containerId);
-  if (!mapElement) {
-    return;
+  if (!mapElement || typeof L === 'undefined') {
+    return null;
   }
 
-  // Ensure Leaflet global is loaded
-  if (typeof L === 'undefined') {
-    console.warn('Leaflet no está cargado aún en window.L');
-    return;
-  }
-
-  // Destroy previous instance if re-entering view in SPA router
-  if (mapInstance) {
+  // Clean up existing instance if route was reloaded
+  if (publicMapInstance) {
     try {
-      mapInstance.remove();
+      publicMapInstance.remove();
     } catch (e) {
-      console.warn('Fallo al limpiar instancia previa del mapa:', e);
+      console.warn('Fallo al limpiar instancia previa del mapa público:', e);
     }
-    mapInstance = null;
+    publicMapInstance = null;
   }
 
   const state = store.getState();
@@ -39,32 +43,29 @@ export function initInteractiveMap(containerId = 'map') {
   const lng = centro.coordenadas?.lng || -86.0942;
   const zoom = 14;
 
-  // Initialize Map with dark background default
   const map = L.map(containerId, {
     center: [lat, lng],
     zoom: zoom,
     zoomControl: true,
-    scrollWheelZoom: false // prevents accidental scroll capture
+    scrollWheelZoom: false
   });
 
-  mapInstance = map;
+  publicMapInstance = map;
 
-  // 1. High-res Satellite Tile Layer (Esri World Imagery) - Free, no API key required
+  // 1. High-res Satellite Tile Layer (Esri World Imagery) - Keyless
   const satelliteTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     attribution: 'Tiles &copy; Esri &mdash; Earthstar Geographics',
     maxZoom: 18
   });
 
-  // 2. OpenStreetMap Street Tiles - Free, no API key required
+  // 2. OpenStreetMap Street Tiles - Keyless
   const streetTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19
   });
 
-  // Add Satellite tiles as default (fits biomass & nature context perfectly)
   satelliteTiles.addTo(map);
 
-  // Add Layer Switcher Control
   L.control.layers(
     {
       '🛰️ Satelital en Vivo (Esri)': satelliteTiles,
@@ -74,7 +75,7 @@ export function initInteractiveMap(containerId = 'map') {
     { position: 'topright' }
   ).addTo(map);
 
-  // 3. Custom Radar Pulse Marker with Plant Icon
+  // Custom Radar Pulse Marker with Plant Icon
   const radarIcon = L.divIcon({
     className: 'custom-radar-marker',
     html: `
@@ -91,16 +92,44 @@ export function initInteractiveMap(containerId = 'map') {
 
   const marker = L.marker([lat, lng], { icon: radarIcon }).addTo(map);
 
-  // 4. Glassmorphism Popup content
+  // Complete popup with Horarios, Contacto, Materiales Aceptados y Cómo Llegar
   const popupContent = `
     <div class="map-popup-card">
+      <div class="map-popup-badge">● Planta Piloto Operativa</div>
       <div class="map-popup-title">🌱 ${centro.nombre}</div>
-      <div class="map-popup-detail">📍 ${centro.direccion}</div>
-      <div class="map-popup-detail">📞 Tel: <strong>${centro.telefono}</strong></div>
-      <div class="map-popup-detail">⚖️ Capacidad diaria: <strong>${capacidad.recepcion_kg_dia} kg/día</strong></div>
-      <div class="map-popup-detail">📦 Almacenamiento: <strong>${capacidad.almacenamiento_kg} kg</strong></div>
+      <div class="map-popup-address">📍 ${centro.direccion}</div>
+      
+      <div class="map-popup-section">
+        <div class="map-popup-label">⏰ Horarios de Atención</div>
+        <div class="map-popup-val">
+          <span>Lun a Vie: <strong>07:00 am – 04:00 pm</strong></span>
+          <span>Sábados: <strong>08:00 am – 12:00 md</strong></span>
+          <span style="font-size:0.75rem; color:#94a3b8;">Domingos: Solo emergencias y recepción programada</span>
+        </div>
+      </div>
+
+      <div class="map-popup-section">
+        <div class="map-popup-label">📞 Contacto Directo</div>
+        <div class="map-popup-val">
+          <span>Teléfono: <a href="tel:${centro.telefono}" style="color:#86efac; font-weight:700;">${centro.telefono}</a></span>
+          <span>WhatsApp / Planta: <strong style="color:#86efac;">+505 8888-2233</strong></span>
+          <span>Correo: <span style="color:#cbd5e1;">operaciones@biogestor.local</span></span>
+        </div>
+      </div>
+
+      <div class="map-popup-section">
+        <div class="map-popup-label">🌿 Materiales Aceptados</div>
+        <div class="map-popup-materials">
+          <span class="badge-mini badge-green">Restos de frutas y verduras</span>
+          <span class="badge-mini badge-green">Poda tierna y hojas</span>
+          <span class="badge-mini badge-amber">Ramas y poda leñosa</span>
+          <span class="badge-mini badge-amber">Aserrín limpio</span>
+        </div>
+        <a href="#materiales" class="map-popup-link">Consultar catálogo completo y criterios de triaje &rarr;</a>
+      </div>
+
       <div class="map-popup-actions">
-        <a class="map-popup-btn" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" rel="noopener">
+        <a class="map-popup-btn map-popup-btn-primary" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" rel="noopener">
           🧭 Cómo llegar
         </a>
         <a class="map-popup-btn map-popup-btn-outline" href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" rel="noopener">
@@ -116,14 +145,162 @@ export function initInteractiveMap(containerId = 'map') {
     autoClose: false
   });
 
-  // Open popup on hover or click
-  marker.on('mouseover', () => {
+  marker.on('click', () => {
     marker.openPopup();
   });
 
-  // Auto-open on initial load after smooth pan
+  // Auto-open on initial view load
   setTimeout(() => {
     map.invalidateSize();
     marker.openPopup();
-  }, 250);
+  }, 300);
+
+  return map;
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * 2. FORM PICKUP MAP (Draggable marker + click-to-place + on-demand GPS)
+ * --------------------------------------------------------------------------
+ */
+export function initPickupMap(containerId = 'mapRecogida', options = {}) {
+  const container = document.getElementById(containerId);
+  if (!container || typeof L === 'undefined') {
+    return null;
+  }
+
+  // Destroy previous pickup map if active
+  if (pickupMapInstance) {
+    try {
+      pickupMapInstance.remove();
+    } catch (e) {
+      console.warn('Error al limpiar mapa previo de recogida:', e);
+    }
+    pickupMapInstance = null;
+    pickupMarkerInstance = null;
+  }
+
+  const defaultLat = options.initialLat || 11.9744;
+  const defaultLng = options.initialLng || -86.0942;
+  const hasInitialCoords = !!options.hasCoords;
+
+  const map = L.map(containerId, {
+    center: [defaultLat, defaultLng],
+    zoom: hasInitialCoords ? 15 : 13,
+    zoomControl: true,
+    scrollWheelZoom: false
+  });
+
+  pickupMapInstance = map;
+
+  // OpenStreetMap layer for street readability
+  const streetLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap',
+    maxZoom: 19
+  });
+  streetLayer.addTo(map);
+
+  // Custom marker for pickup truck location
+  const pickupIcon = L.divIcon({
+    className: 'pickup-marker-icon',
+    html: `
+      <div class="pickup-pin-wrapper">
+        <div class="pickup-pin">🚛</div>
+      </div>
+    `,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -18]
+  });
+
+  const updateCoordinates = (lat, lng) => {
+    const latField = document.getElementById('solLat');
+    const lngField = document.getElementById('solLng');
+    const badge = document.getElementById('coordsBadge');
+    const clearBtn = document.getElementById('btnLimpiarCoords');
+
+    if (latField) latField.value = lat.toFixed(6);
+    if (lngField) lngField.value = lng.toFixed(6);
+
+    if (badge) {
+      badge.textContent = `📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      badge.style.color = '#15803d';
+      badge.style.background = 'rgba(34, 197, 94, 0.15)';
+      badge.style.border = '1px solid rgba(34, 197, 94, 0.4)';
+    }
+
+    if (clearBtn) clearBtn.style.display = 'inline-flex';
+
+    if (typeof options.onLocationChange === 'function') {
+      options.onLocationChange({ lat, lng });
+    }
+  };
+
+  const createOrMoveMarker = (lat, lng, shouldPan = true) => {
+    if (!pickupMarkerInstance) {
+      pickupMarkerInstance = L.marker([lat, lng], {
+        icon: pickupIcon,
+        draggable: true
+      }).addTo(map);
+
+      pickupMarkerInstance.on('dragend', (e) => {
+        const pos = e.target.getLatLng();
+        updateCoordinates(pos.lat, pos.lng);
+      });
+    } else {
+      pickupMarkerInstance.setLatLng([lat, lng]);
+    }
+
+    if (shouldPan) {
+      map.panTo([lat, lng]);
+    }
+    updateCoordinates(lat, lng);
+  };
+
+  if (hasInitialCoords) {
+    createOrMoveMarker(defaultLat, defaultLng, false);
+  }
+
+  // Click on map to place or adjust marker
+  map.on('click', (e) => {
+    createOrMoveMarker(e.latlng.lat, e.latlng.lng);
+  });
+
+  const clearCoords = () => {
+    if (pickupMarkerInstance) {
+      map.removeLayer(pickupMarkerInstance);
+      pickupMarkerInstance = null;
+    }
+    const latField = document.getElementById('solLat');
+    const lngField = document.getElementById('solLng');
+    const badge = document.getElementById('coordsBadge');
+    const clearBtn = document.getElementById('btnLimpiarCoords');
+
+    if (latField) latField.value = '';
+    if (lngField) lngField.value = '';
+    if (badge) {
+      badge.textContent = 'Sin coordenadas fijadas (opcional)';
+      badge.style.color = 'var(--color-text-secondary)';
+      badge.style.background = 'var(--color-gray-bg)';
+      badge.style.border = '1px solid var(--color-border)';
+    }
+    if (clearBtn) clearBtn.style.display = 'none';
+  };
+
+  const clearBtn = document.getElementById('btnLimpiarCoords');
+  if (clearBtn) {
+    clearBtn.onclick = (e) => {
+      e.preventDefault();
+      clearCoords();
+    };
+  }
+
+  return {
+    map,
+    setCoordinates: (lat, lng) => createOrMoveMarker(lat, lng),
+    clearCoordinates: clearCoords,
+    invalidateSize: () => {
+      setTimeout(() => map.invalidateSize(), 150);
+    }
+  };
 }
