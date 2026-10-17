@@ -5,7 +5,7 @@
 
 import { store } from '../../store/store.js';
 import { selectRecepciones, selectSolicitudes, selectCapacidad, selectAvailableProcesses } from '../../store/selectors.js';
-import { registrarRecepcion } from '../../store/actions.js';
+import { registrarRecepcion, actualizarRecepcion } from '../../store/actions.js';
 import { MOTIVOS_RECHAZO, TIPO_BIOMASA, TAMANO, HUMEDAD, CONTAMINACION, MEDIDA_TIPO } from '../../logic/constants.js';
 
 export function renderRecepcionView() {
@@ -41,7 +41,7 @@ export function renderRecepcionView() {
         }
 
         <div id="recFormCard" class="form-card" style="display: none;">
-          <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: var(--space-md); color: var(--color-text);">
+          <h2 id="recFormTitle" style="font-size: 1.25rem; font-weight: 700; margin-bottom: var(--space-md); color: var(--color-text);">
             Nuevo Registro de Triaje en Balanza
           </h2>
           <div id="recFormAlert"></div>
@@ -191,6 +191,7 @@ export function renderRecepcionView() {
                       <th>Rechazo (kg)</th>
                       <th>Clasificación</th>
                       <th>Lote Asociado</th>
+                      <th>Acción</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -221,6 +222,11 @@ export function renderRecepcionView() {
                                 </a>`
                           }
                         </td>
+                        <td>
+                          <button type="button" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" data-editar-recepcion="${r.id}">
+                            Editar
+                          </button>
+                        </td>
                       </tr>
                     `).join('')}
                   </tbody>
@@ -247,6 +253,23 @@ export function attachRecepcionEvents() {
   const recibidaInput = document.getElementById('recCantidadRecibida');
   const aceptadaInput = document.getElementById('recCantidadAceptada');
   const solicitudSelect = document.getElementById('recSolicitudId');
+  const formTitle = document.getElementById('recFormTitle');
+  const submitBtn = form?.querySelector('[type="submit"]');
+  let recepcionEditandoId = null;
+
+  const resetFormMode = () => {
+    recepcionEditandoId = null;
+    form?.reset();
+    formCard.style.display = 'none';
+    formTitle.textContent = 'Nuevo Registro de Triaje en Balanza';
+    submitBtn.textContent = 'Guardar Recepción y Triaje';
+    solicitudSelect.disabled = false;
+    solicitudSelect.querySelector('[data-edit-option]')?.remove();
+    aceptadaInput.dataset.manual = '';
+    rechazoSection.style.display = 'none';
+    otroGroup.style.display = 'none';
+    alertContainer.innerHTML = '';
+  };
 
   if (window.__prefillSolicitudId && solicitudSelect) {
     solicitudSelect.value = window.__prefillSolicitudId;
@@ -265,9 +288,49 @@ export function attachRecepcionEvents() {
 
   if (cancelBtn && formCard) {
     cancelBtn.addEventListener('click', () => {
-      formCard.style.display = 'none';
+      resetFormMode();
     });
   }
+
+  document.querySelectorAll('[data-editar-recepcion]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const recepcion = selectRecepciones(store.getState()).find((item) => item.id === button.dataset.editarRecepcion);
+      if (!recepcion) return;
+
+      recepcionEditandoId = recepcion.id;
+      const solicitud = selectSolicitudes(store.getState()).find((item) => item.id === recepcion.solicitud_id);
+      if (solicitud && !Array.from(solicitudSelect.options).some((option) => option.value === solicitud.id)) {
+        const option = document.createElement('option');
+        option.value = solicitud.id;
+        option.textContent = `${solicitud.codigo} - ${solicitud.generador?.nombre_establecimiento || 'Solicitud recibida'}`;
+        option.dataset.editOption = 'true';
+        solicitudSelect.append(option);
+      }
+      solicitudSelect.value = recepcion.solicitud_id;
+      solicitudSelect.disabled = true;
+      document.getElementById('recCantidadRecibida').value = recepcion.cantidad?.recibida_kg ?? 0;
+      document.getElementById('recCantidadAceptada').value = recepcion.cantidad?.aceptada_kg ?? 0;
+      document.getElementById('recCantidadRechazada').value = recepcion.cantidad?.rechazada_kg ?? 0;
+      document.getElementById('recMedidaTipo').value = recepcion.cantidad?.medida_tipo || MEDIDA_TIPO.PESADA;
+      document.getElementById('recTipoBiomasa').value = recepcion.clasificacion?.tipo_biomasa || TIPO_BIOMASA.BLANDA;
+      document.getElementById('recTamano').value = recepcion.clasificacion?.tamano || TAMANO.MEDIANO;
+      document.getElementById('recHumedad').value = recepcion.clasificacion?.humedad || HUMEDAD.MEDIA;
+      document.getElementById('recContaminacion').value = recepcion.clasificacion?.contaminacion || CONTAMINACION.NINGUNA;
+      document.getElementById('recProcesoManual').value = recepcion.clasificacion?.proceso_sugerido_id || '';
+      document.getElementById('recMotivoOtro').value = recepcion.rechazo?.motivo_otro || '';
+      document.querySelectorAll('input[name="motivosRechazo"]').forEach((checkbox) => {
+        checkbox.checked = recepcion.rechazo?.motivos?.includes(checkbox.value) || false;
+      });
+      aceptadaInput.dataset.manual = 'true';
+      rechazoSection.style.display = Number(recepcion.cantidad?.rechazada_kg) > 0 ? 'block' : 'none';
+      otroGroup.style.display = recepcion.rechazo?.motivos?.includes(MOTIVOS_RECHAZO.OTRO) ? 'block' : 'none';
+      formTitle.textContent = `Editar Recepción ${recepcion.codigo}`;
+      submitBtn.textContent = 'Guardar Cambios';
+      formCard.style.display = 'block';
+      alertContainer.innerHTML = '';
+      formTitle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
 
   // Auto-calculate aceptada when recibida or rechazada change
   const syncQuantities = () => {
@@ -283,8 +346,14 @@ export function attachRecepcionEvents() {
     }
   };
 
-  recibidaInput?.addEventListener('input', syncQuantities);
-  rechazadaInput?.addEventListener('input', syncQuantities);
+  recibidaInput?.addEventListener('input', () => {
+    aceptadaInput.dataset.manual = '';
+    syncQuantities();
+  });
+  rechazadaInput?.addEventListener('input', () => {
+    aceptadaInput.dataset.manual = '';
+    syncQuantities();
+  });
   aceptadaInput?.addEventListener('input', () => {
     aceptadaInput.dataset.manual = 'true';
   });
@@ -327,10 +396,11 @@ export function attachRecepcionEvents() {
         }
       };
 
-      const result = registrarRecepcion(payload);
+      const result = recepcionEditandoId
+        ? actualizarRecepcion(recepcionEditandoId, payload)
+        : registrarRecepcion(payload);
       if (result.success) {
-        form.reset();
-        formCard.style.display = 'none';
+        resetFormMode();
       } else {
         alertContainer.innerHTML = `
           <div class="alert alert-danger">

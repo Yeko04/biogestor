@@ -4,7 +4,7 @@
 
 import { store } from '../../store/store.js';
 import { selectSolicitudes, selectCatalogoMateriales } from '../../store/selectors.js';
-import { crearSolicitud } from '../../store/actions.js';
+import { crearSolicitud, actualizarSolicitud } from '../../store/actions.js';
 
 export function renderSolicitudesView() {
   const state = store.getState();
@@ -25,7 +25,7 @@ export function renderSolicitudesView() {
         </div>
 
         <div id="solicitudFormCard" class="form-card" style="display: none;">
-          <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: var(--space-md); color: var(--color-text);">
+          <h2 id="solFormTitle" style="font-size: 1.25rem; font-weight: 700; margin-bottom: var(--space-md); color: var(--color-text);">
             Registrar Biomasa Disponible
           </h2>
           <div id="solFormAlert"></div>
@@ -137,13 +137,16 @@ export function renderSolicitudesView() {
                         </td>
                         <td>${s.material?.categoria_nombre || 'Material'}</td>
                         <td>${s.cantidad?.estimada_kg || 0} ${s.cantidad?.unidad_estimada || 'kg'}</td>
-                        <td>${s.entrega?.modalidad === 'recogida' ? '🚛 Recogida' : '🚚 Entrega Propia'}</td>
+                        <td>${s.entrega?.modalidad === 'recogida' ? 'Recogida' : 'Entrega Propia'}</td>
                         <td>
                           <span class="badge ${getStatusBadge(s.estado)}">
                             ${s.estado.replace(/_/g, ' ')}
                           </span>
                         </td>
                         <td>
+                          <button type="button" class="btn btn-outline" style="padding: 0.35rem 0.8rem; font-size: 0.82rem; margin-right: 0.35rem;" data-editar-solicitud="${s.id}">
+                            Editar
+                          </button>
                           ${
                             s.estado !== 'recibida'
                               ? `<a class="btn btn-outline" style="padding: 0.35rem 0.8rem; font-size: 0.82rem;" href="#recepcion" onclick="window.__prefillSolicitudId='${s.id}'">
@@ -191,6 +194,18 @@ export function attachSolicitudesEvents() {
   const modalidadSelect = document.getElementById('solModalidad');
   const direccionGroup = document.getElementById('solDireccionGroup');
   const alertContainer = document.getElementById('solFormAlert');
+  const formTitle = document.getElementById('solFormTitle');
+  const submitBtn = form?.querySelector('[type="submit"]');
+  let solicitudEditandoId = null;
+
+  const resetFormMode = () => {
+    solicitudEditandoId = null;
+    form?.reset();
+    formCard.style.display = 'none';
+    formTitle.textContent = 'Registrar Biomasa Disponible';
+    submitBtn.textContent = 'Registrar Solicitud';
+    direccionGroup.style.display = 'none';
+  };
 
   if (toggleBtn && formCard) {
     toggleBtn.addEventListener('click', () => {
@@ -203,9 +218,35 @@ export function attachSolicitudesEvents() {
 
   if (cancelBtn && formCard) {
     cancelBtn.addEventListener('click', () => {
-      formCard.style.display = 'none';
+      resetFormMode();
     });
   }
+
+  document.querySelectorAll('[data-editar-solicitud]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const solicitud = selectSolicitudes(store.getState()).find((item) => item.id === button.dataset.editarSolicitud);
+      if (!solicitud) return;
+
+      solicitudEditandoId = solicitud.id;
+      formTitle.textContent = `Editar Solicitud ${solicitud.codigo}`;
+      submitBtn.textContent = 'Guardar Cambios';
+      formCard.style.display = 'block';
+      document.getElementById('solEstablecimiento').value = solicitud.generador?.nombre_establecimiento || '';
+      document.getElementById('solTipoGenerador').value = solicitud.generador?.tipo_generador || 'otros';
+      document.getElementById('solContacto').value = solicitud.generador?.nombre_contacto || '';
+      document.getElementById('solTelefono').value = solicitud.generador?.telefono || '';
+      document.getElementById('solMaterial').value = solicitud.material?.categoria_id || '';
+      document.getElementById('solCantidadEstimada').value = solicitud.cantidad?.estimada_kg ?? '';
+      document.getElementById('solUnidad').value = solicitud.cantidad?.unidad_estimada || 'kg';
+      modalidadSelect.value = solicitud.entrega?.modalidad || 'entrega_propia';
+      document.getElementById('solDireccion').value = solicitud.entrega?.direccion || '';
+      document.getElementById('solDescripcion').value = solicitud.material?.descripcion || '';
+      direccionGroup.style.display = modalidadSelect.value === 'recogida' ? 'flex' : 'none';
+      document.getElementById('solDireccion').required = modalidadSelect.value === 'recogida';
+      alertContainer.innerHTML = '';
+      formTitle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
 
   if (modalidadSelect && direccionGroup) {
     modalidadSelect.addEventListener('change', () => {
@@ -247,10 +288,11 @@ export function attachSolicitudesEvents() {
         }
       };
 
-      const result = crearSolicitud(payload);
+      const result = solicitudEditandoId
+        ? actualizarSolicitud(solicitudEditandoId, payload)
+        : crearSolicitud(payload);
       if (result.success) {
-        form.reset();
-        formCard.style.display = 'none';
+        resetFormMode();
       } else {
         alertContainer.innerHTML = `
           <div class="alert alert-danger">

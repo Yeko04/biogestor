@@ -5,7 +5,7 @@
 
 import { store } from '../../store/store.js';
 import { selectSubproductos, selectSalidas, selectStockSummary, selectLotes } from '../../store/selectors.js';
-import { registrarSalidaSubproducto } from '../../store/actions.js';
+import { registrarSalidaSubproducto, actualizarSalidaSubproducto } from '../../store/actions.js';
 import { DESTINOS_SALIDA } from '../../logic/constants.js';
 
 export function renderSubproductosView() {
@@ -52,7 +52,7 @@ export function renderSubproductosView() {
 
         <!-- Formulario de Nueva Salida -->
         <div id="salidaFormCard" class="form-card" style="display: none;">
-          <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: var(--space-md); color: var(--color-text);">
+          <h2 id="salidaFormTitle" style="font-size: 1.25rem; font-weight: 700; margin-bottom: var(--space-md); color: var(--color-text);">
             Registrar Entrega de Subproducto
           </h2>
           <div id="salidaFormAlert"></div>
@@ -131,6 +131,7 @@ export function renderSubproductosView() {
                       <th>Destino</th>
                       <th>Beneficiario</th>
                       <th>Observaciones</th>
+                      <th>Acción</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -142,6 +143,11 @@ export function renderSubproductosView() {
                         <td><span class="badge badge-info">${s.destino.replace(/_/g, ' ')}</span></td>
                         <td><strong>${s.beneficiario_uso}</strong></td>
                         <td>${s.observaciones || '<span style="color:var(--color-text-secondary);">-</span>'}</td>
+                        <td>
+                          <button type="button" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" data-editar-salida="${s.id}">
+                            Editar
+                          </button>
+                        </td>
                       </tr>
                     `).join('')}
                   </tbody>
@@ -164,6 +170,43 @@ export function attachSubproductosEvents() {
   const spSelect = document.getElementById('salSubproductoId');
   const cantidadInput = document.getElementById('salCantidad');
   const stockHelper = document.getElementById('stockHelperText');
+  const formTitle = document.getElementById('salidaFormTitle');
+  const submitBtn = form?.querySelector('[type="submit"]');
+  let salidaEditandoId = null;
+
+  const effectiveAvailable = (option) => {
+    const base = Number(option?.dataset.disponible) || 0;
+    if (!salidaEditandoId) return base;
+    const salida = selectSalidas(store.getState()).find((item) => item.id === salidaEditandoId);
+    return salida?.subproducto_id === option?.value ? base + Number(salida.cantidad_entregada || 0) : base;
+  };
+
+  const updateStockDisplay = () => {
+    const selected = spSelect.options[spSelect.selectedIndex];
+    if (selected && selected.dataset.disponible !== undefined) {
+      const disponible = effectiveAvailable(selected);
+      stockHelper.innerHTML = `Stock máximo disponible: <strong style="color: #15803d;">${disponible} ${selected.dataset.unidad}</strong>`;
+      cantidadInput.max = disponible;
+    } else {
+      stockHelper.textContent = 'Seleccione un lote para ver existencias máximas disponibles.';
+      cantidadInput.removeAttribute('max');
+    }
+  };
+
+  const resetFormMode = () => {
+    salidaEditandoId = null;
+    form?.reset();
+    formCard.style.display = 'none';
+    formTitle.textContent = 'Registrar Entrega de Subproducto';
+    submitBtn.textContent = 'Registrar Salida';
+    Array.from(spSelect.options).forEach((option) => {
+      if (option.dataset.disponible !== undefined) {
+        option.disabled = Number(option.dataset.disponible) <= 0;
+      }
+    });
+    updateStockDisplay();
+    alertContainer.innerHTML = '';
+  };
 
   if (toggleBtn && formCard) {
     toggleBtn.addEventListener('click', () => {
@@ -176,22 +219,37 @@ export function attachSubproductosEvents() {
 
   if (cancelBtn && formCard) {
     cancelBtn.addEventListener('click', () => {
-      formCard.style.display = 'none';
+      resetFormMode();
     });
   }
 
-  spSelect?.addEventListener('change', () => {
-    const selected = spSelect.options[spSelect.selectedIndex];
-    if (selected && selected.dataset.disponible !== undefined) {
-      const disp = Number(selected.dataset.disponible);
-      const unidad = selected.dataset.unidad;
-      stockHelper.innerHTML = `Stock máximo disponible: <strong style="color: #15803d;">${disp} ${unidad}</strong>`;
-      cantidadInput.max = disp;
-    } else {
-      stockHelper.textContent = 'Seleccione un lote para ver existencias máximas disponibles.';
-      cantidadInput.removeAttribute('max');
-    }
+  document.querySelectorAll('[data-editar-salida]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const salida = selectSalidas(store.getState()).find((item) => item.id === button.dataset.editarSalida);
+      if (!salida) return;
+
+      const option = Array.from(spSelect.options).find((item) => item.value === salida.subproducto_id);
+      if (!option) {
+        alertContainer.innerHTML = '<div class="alert alert-danger">No se encontró el subproducto vinculado a esta salida.</div>';
+        return;
+      }
+      salidaEditandoId = salida.id;
+      option.disabled = false;
+      spSelect.value = salida.subproducto_id;
+      document.getElementById('salCantidad').value = salida.cantidad_entregada;
+      document.getElementById('salDestino').value = salida.destino;
+      document.getElementById('salBeneficiario').value = salida.beneficiario_uso || '';
+      document.getElementById('salObservaciones').value = salida.observaciones || '';
+      formTitle.textContent = `Editar Salida ${salida.codigo}`;
+      submitBtn.textContent = 'Guardar Cambios';
+      formCard.style.display = 'block';
+      alertContainer.innerHTML = '';
+      updateStockDisplay();
+      formTitle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   });
+
+  spSelect?.addEventListener('change', updateStockDisplay);
 
   if (form) {
     form.addEventListener('submit', (e) => {
@@ -199,7 +257,7 @@ export function attachSubproductosEvents() {
       alertContainer.innerHTML = '';
 
       const selected = spSelect.options[spSelect.selectedIndex];
-      const disp = Number(selected?.dataset?.disponible) || 0;
+      const disp = effectiveAvailable(selected);
       const cant = Number(cantidadInput.value) || 0;
       const unidad = selected?.dataset?.unidad || 'kg';
       const loteId = selected?.dataset?.lote || null;
@@ -224,10 +282,11 @@ export function attachSubproductosEvents() {
         observaciones: document.getElementById('salObservaciones').value.trim() || null
       };
 
-      const result = registrarSalidaSubproducto(payload);
+      const result = salidaEditandoId
+        ? actualizarSalidaSubproducto(salidaEditandoId, payload)
+        : registrarSalidaSubproducto(payload);
       if (result.success) {
-        form.reset();
-        formCard.style.display = 'none';
+        resetFormMode();
       } else {
         alertContainer.innerHTML = `
           <div class="alert alert-danger">

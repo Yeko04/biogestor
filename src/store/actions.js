@@ -6,7 +6,7 @@ import { store } from './store.js';
 import { generateId, generateCode } from '../logic/id.js';
 import { validateSolicitud, validateReception, normalizeReception } from '../logic/validation.js';
 import { computeLotComposition, updateLotLossesFromFollowUps, validateFollowUp, createFollowUpBase, canAdvanceState } from '../logic/lots.js';
-import { validateSubproduct, validateSalida, applyOutput } from '../logic/subproducts.js';
+import { validateSubproduct, validateSalida, applyOutput, recalcSubproductStock } from '../logic/subproducts.js';
 import { setReceptionsPaused } from '../logic/config.js';
 import { exportJson, importJson } from '../storage/localstore.js';
 import { ESTADOS_SOLICITUD, ESTADOS_LOTE } from '../logic/constants.js';
@@ -112,6 +112,47 @@ export function crearSolicitud(payload) {
   return { success: true, data: nuevaSolicitud };
 }
 
+export function actualizarSolicitud(solicitudId, payload) {
+  const state = store.getState();
+  const solicitudes = state.collections.solicitudes || [];
+  const index = solicitudes.findIndex((solicitud) => solicitud.id === solicitudId);
+  if (index === -1) {
+    return { success: false, errors: ['Solicitud no encontrada.'] };
+  }
+
+  const target = solicitudes[index];
+  const updated = {
+    ...target,
+    ...payload,
+    generador: { ...target.generador, ...payload.generador },
+    material: { ...target.material, ...payload.material },
+    cantidad: { ...target.cantidad, ...payload.cantidad },
+    entrega: { ...target.entrega, ...payload.entrega },
+    fecha_actualizacion: new Date().toISOString(),
+    historial_cambios: [
+      { fecha: new Date().toISOString(), usuario_id: payload.usuario_id || 'u_op_001', accion: 'editar_solicitud' },
+      ...(target.historial_cambios || [])
+    ]
+  };
+  const validation = validateSolicitud(updated);
+  if (!validation.valid) {
+    return { success: false, errors: validation.errors };
+  }
+
+  const nextSolicitudes = [...solicitudes];
+  nextSolicitudes[index] = updated;
+  store.setState((prev) => ({
+    ...prev,
+    collections: { ...prev.collections, solicitudes: nextSolicitudes },
+    config: {
+      ...prev.config,
+      bitacora_cambios: addAuditLog(prev, 'editar', 'solicitudes', `Solicitud ${target.codigo} actualizada.`, payload.usuario_id || 'u_op_001')
+    }
+  }), 'ACTUALIZAR_SOLICITUD');
+
+  return { success: true, data: updated };
+}
+
 export function actualizarEstadoSolicitud(solicitudId, nuevoEstado, observaciones = null, usuarioId = 'u_op_001') {
   const state = store.getState();
   const solicitudes = state.collections.solicitudes || [];
@@ -209,6 +250,57 @@ export function registrarRecepcion(payload) {
   }), 'REGISTRAR_RECEPCION');
 
   return { success: true, data: nuevaRecepcion };
+}
+
+export function actualizarRecepcion(recepcionId, payload) {
+  const state = store.getState();
+  const recepciones = state.collections.recepciones || [];
+  const index = recepciones.findIndex((recepcion) => recepcion.id === recepcionId);
+  if (index === -1) {
+    return { success: false, errors: ['Recepción no encontrada.'] };
+  }
+
+  const target = recepciones[index];
+  if (payload.solicitud_id !== target.solicitud_id) {
+    return { success: false, errors: ['No se puede cambiar la solicitud de origen de una recepción existente.'] };
+  }
+
+  const data = normalizeReception({
+    ...target,
+    ...payload,
+    cantidad: { ...target.cantidad, ...payload.cantidad },
+    rechazo: { ...target.rechazo, ...payload.rechazo },
+    clasificacion: { ...target.clasificacion, ...payload.clasificacion },
+    fecha_recepcion: target.fecha_recepcion,
+    responsable_id: payload.responsable_id || target.responsable_id
+  });
+  const validation = validateReception(data);
+  if (!validation.valid) {
+    return { success: false, errors: validation.errors };
+  }
+
+  const nextRecepciones = [...recepciones];
+  nextRecepciones[index] = data;
+  let lotes = state.collections.lotes || [];
+  if (target.lote_id) {
+    const recepcionesDelLote = nextRecepciones.filter((recepcion) => recepcion.lote_id === target.lote_id);
+    lotes = lotes.map((lote) => (
+      lote.id === target.lote_id
+        ? updateLotLossesFromFollowUps({ ...lote, composicion: computeLotComposition(recepcionesDelLote) })
+        : lote
+    ));
+  }
+
+  store.setState((prev) => ({
+    ...prev,
+    collections: { ...prev.collections, recepciones: nextRecepciones, lotes },
+    config: {
+      ...prev.config,
+      bitacora_cambios: addAuditLog(prev, 'editar', 'recepciones', `Recepción ${target.codigo} actualizada.`, data.responsable_id)
+    }
+  }), 'ACTUALIZAR_RECEPCION');
+
+  return { success: true, data };
 }
 
 // ----------------------------------------------------------------------
@@ -655,6 +747,78 @@ export function registrarSalidaSubproducto(payload) {
   }), 'REGISTRAR_SALIDA_SUBPRODUCTO');
 
   return { success: true, data: nuevaSalida };
+}
+
+export function actualizarSalidaSubproducto(salidaId, payload) {
+  const state = store.getState();
+  const salidas = state.collections.salidas_subproductos || [];
+  const salidaIndex = salidas.findIndex((salida) => salida.id === salidaId);
+  if (salidaIndex === -1) {
+    return { success: false, errors: ['Salida no encontrada.'] };
+  }
+
+  const target = salidas[salidaIndex];
+  const subproductos = state.collections.subproductos || [];
+  const nuevoSubproducto = subproductos.find((subproducto) => subproducto.id === payload.subproducto_id);
+  if (!nuevoSubproducto) {
+    return { success: false, errors: ['Subproducto no encontrado.'] };
+  }
+
+  const data = {
+    ...target,
+    ...payload,
+    lote_id: nuevoSubproducto.lote_id,
+    unidad: nuevoSubproducto.unidad,
+    responsable_id: payload.responsable_id || target.responsable_id
+  };
+  const validation = validateSalida(data);
+  if (!validation.valid) {
+    return { success: false, errors: validation.errors };
+  }
+
+  const anteriorSubproducto = subproductos.find((subproducto) => subproducto.id === target.subproducto_id);
+  if (!anteriorSubproducto) {
+    return { success: false, errors: ['El subproducto vinculado a esta salida ya no existe.'] };
+  }
+
+  const subproductosActualizados = subproductos.map((subproducto) => {
+    if (subproducto.id === anteriorSubproducto.id) {
+      return recalcSubproductStock({
+        ...subproducto,
+        cantidad_destinada: Math.max(0, (Number(subproducto.cantidad_destinada) || 0) - Number(target.cantidad_entregada || 0)),
+        salidas_ids: subproducto.id === nuevoSubproducto.id
+          ? subproducto.salidas_ids
+          : (subproducto.salidas_ids || []).filter((id) => id !== salidaId)
+      });
+    }
+    return subproducto;
+  });
+  const destinoIndex = subproductosActualizados.findIndex((subproducto) => subproducto.id === nuevoSubproducto.id);
+  const applyResult = applyOutput(subproductosActualizados[destinoIndex], data.cantidad_entregada);
+  if (!applyResult.ok) {
+    return { success: false, errors: [applyResult.reason || 'Existencias insuficientes para realizar la salida.'] };
+  }
+  subproductosActualizados[destinoIndex] = {
+    ...applyResult.subproduct,
+    salidas_ids: [...new Set([...(applyResult.subproduct.salidas_ids || []), salidaId])]
+  };
+
+  const nextSalidas = [...salidas];
+  nextSalidas[salidaIndex] = data;
+  store.setState((prev) => ({
+    ...prev,
+    collections: {
+      ...prev.collections,
+      subproductos: subproductosActualizados,
+      salidas_subproductos: nextSalidas
+    },
+    config: {
+      ...prev.config,
+      bitacora_cambios: addAuditLog(prev, 'editar', 'salidas_subproductos', `Salida ${target.codigo} actualizada.`, data.responsable_id)
+    }
+  }), 'ACTUALIZAR_SALIDA_SUBPRODUCTO');
+
+  return { success: true, data };
 }
 
 // ----------------------------------------------------------------------

@@ -80,17 +80,17 @@ export function renderAdminView() {
 
               <div style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">
                 <button class="btn btn-primary" id="btnExportarJson">
-                  📥 Exportar Respaldo JSON
+                  Exportar Respaldo JSON
                 </button>
                 <label class="btn btn-outline" style="cursor: pointer;">
-                  📤 Importar Respaldo JSON
+                  Importar Respaldo JSON
                   <input type="file" id="fileImportJson" accept=".json" style="display: none;">
                 </label>
               </div>
 
               <div style="margin-top: auto; padding-top: var(--space-xs); border-top: 1px solid var(--color-border);">
                 <button class="btn btn-outline" id="btnResetSistema" style="border-color: var(--color-danger); color: var(--color-danger); font-size: 0.88rem;">
-                  ⚠️ Restablecer a Datos Iniciales
+                  Restablecer a Datos Iniciales
                 </button>
               </div>
             </div>
