@@ -45,7 +45,7 @@ export function getEstimatedTotals(solicitudes = []) {
     estimada_kg: estimadaKg,
     estimada_m3: estimadaM3,
     separadosPorUnidad: true,
-    nota: 'Planning only. Never added to verified kg totals.'
+    nota: 'Solo para fines de planificación'
   };
 }
 
