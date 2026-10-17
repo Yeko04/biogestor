@@ -411,7 +411,8 @@
 .map-interactive-container {
   position: relative;
   width: 100%;
-  height: 480px;
+  height: clamp(520px, 64vh, 600px);
+  min-height: 500px;
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.15), var(--shadow-sm);
@@ -528,39 +529,42 @@
 
 /* Leaflet Glassmorphism Popup */
 .leaflet-popup-content-wrapper {
-  background: rgba(18, 28, 20, 0.94) !important;
+  background: rgba(18, 28, 20, 0.96) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(34, 197, 94, 0.4) !important;
+  border: 1px solid rgba(34, 197, 94, 0.45) !important;
   border-radius: var(--radius-md) !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
   color: #ffffff !important;
-  padding: 0.3rem !important;
+  padding: 0 !important;
+  overflow: hidden !important;
 }
 
-.leaflet-popup-tip {
-  background: rgba(18, 28, 20, 0.94) !important;
-  border: 1px solid rgba(34, 197, 94, 0.4) !important;
-}
-
-.leaflet-container a.leaflet-popup-close-button {
-  color: #94a3b8 !important;
-  padding: 8px !important;
-  font-size: 1.1rem !important;
-}
-
-.leaflet-container a.leaflet-popup-close-button:hover {
-  color: #ffffff !important;
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
 }
 
 .map-popup-card {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
   font-family: var(--font-sans);
-  min-width: 270px;
-  max-width: 320px;
-  padding: 0.25rem;
+  width: min(88vw, 320px);
+  max-height: clamp(260px, 48vh, 360px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.85rem 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 197, 94, 0.4) transparent;
+}
+
+.map-popup-card::-webkit-scrollbar {
+  width: 5px;
+}
+.map-popup-card::-webkit-scrollbar-thumb {
+  background: rgba(34, 197, 94, 0.4);
+  border-radius: 999px;
 }
 
 .map-popup-badge {

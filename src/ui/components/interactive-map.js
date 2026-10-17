@@ -42,9 +42,11 @@ export function initInteractiveMap(containerId = 'map') {
   const lat = centro.coordenadas?.lat || 11.9744;
   const lng = centro.coordenadas?.lng || -86.0942;
   const zoom = 14;
+  // Offset center southwards so the marker sits in lower third and popup sits completely in view
+  const centerLat = lat - 0.0035;
 
   const map = L.map(containerId, {
-    center: [lat, lng],
+    center: [centerLat, lng],
     zoom: zoom,
     zoomControl: true,
     scrollWheelZoom: false
@@ -102,30 +104,28 @@ export function initInteractiveMap(containerId = 'map') {
       <div class="map-popup-section">
         <div class="map-popup-label">⏰ Horarios de Atención</div>
         <div class="map-popup-val">
-          <span>Lun a Vie: <strong>07:00 am – 04:00 pm</strong></span>
-          <span>Sábados: <strong>08:00 am – 12:00 md</strong></span>
-          <span style="font-size:0.75rem; color:#94a3b8;">Domingos: Solo emergencias y recepción programada</span>
+          <div>Lun - Vie: <strong>07:00 am – 04:00 pm</strong></div>
+          <div>Sábados: <strong>08:00 am – 12:00 md</strong></div>
         </div>
       </div>
 
       <div class="map-popup-section">
         <div class="map-popup-label">📞 Contacto Directo</div>
         <div class="map-popup-val">
-          <span>Teléfono: <a href="tel:${centro.telefono}" style="color:#86efac; font-weight:700;">${centro.telefono}</a></span>
-          <span>WhatsApp / Planta: <strong style="color:#86efac;">+505 8888-2233</strong></span>
-          <span>Correo: <span style="color:#cbd5e1;">operaciones@biogestor.local</span></span>
+          <div>Tel: <a href="tel:${centro.telefono}" style="color:#86efac; font-weight:700;">${centro.telefono}</a> · WhatsApp: <strong style="color:#86efac;">+505 8888-2233</strong></div>
+          <div style="font-size:0.75rem; color:#cbd5e1;">Email: operaciones@biogestor.local</div>
         </div>
       </div>
 
       <div class="map-popup-section">
         <div class="map-popup-label">🌿 Materiales Aceptados</div>
         <div class="map-popup-materials">
-          <span class="badge-mini badge-green">Restos de frutas y verduras</span>
-          <span class="badge-mini badge-green">Poda tierna y hojas</span>
-          <span class="badge-mini badge-amber">Ramas y poda leñosa</span>
+          <span class="badge-mini badge-green">Restos cocina/mercado</span>
+          <span class="badge-mini badge-green">Poda tierna/hojas</span>
+          <span class="badge-mini badge-amber">Ramas y leña seca</span>
           <span class="badge-mini badge-amber">Aserrín limpio</span>
         </div>
-        <a href="#materiales" class="map-popup-link">Consultar catálogo completo y criterios de triaje &rarr;</a>
+        <a href="#materiales" class="map-popup-link">Ver catálogo completo y requisitos &rarr;</a>
       </div>
 
       <div class="map-popup-actions">
@@ -140,20 +140,26 @@ export function initInteractiveMap(containerId = 'map') {
   `;
 
   marker.bindPopup(popupContent, {
-    maxWidth: 320,
+    maxWidth: 340,
+    minWidth: 280,
+    autoPan: true,
+    autoPanPaddingTopLeft: L.point(20, 30),
+    autoPanPaddingBottomRight: L.point(20, 20),
     closeButton: true,
     autoClose: false
   });
 
   marker.on('click', () => {
+    map.panTo([lat - 0.0035, lng], { animate: true, duration: 0.35 });
     marker.openPopup();
   });
 
-  // Auto-open on initial view load
+  // Auto-open on initial view load with centered view
   setTimeout(() => {
     map.invalidateSize();
+    map.setView([lat - 0.0035, lng], zoom);
     marker.openPopup();
-  }, 300);
+  }, 250);
 
   return map;
 }

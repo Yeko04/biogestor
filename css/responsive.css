@@ -473,7 +473,8 @@ html, body {
 
   /* Interactive Map Mobile Height */
   .map-interactive-container {
-    height: 330px !important;
+    height: 440px !important;
+    min-height: 420px !important;
   }
 
   /* Toast Container full-width on mobile */

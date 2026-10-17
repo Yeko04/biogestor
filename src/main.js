@@ -5,7 +5,7 @@
 import { initNav } from './ui/nav.js';
 import { initResponsiveTables } from './ui/tables-responsive.js';
 import { loadData } from './storage/localstore.js';
-import { router } from './ui/router.js?v=3.0';
+import { router } from './ui/router.js?v=3.1';
 
 function init() {
   // 1. Initialize Navigation Drawer & Shell Interactions
