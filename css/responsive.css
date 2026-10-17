@@ -57,6 +57,15 @@ html, body {
   text-overflow: ellipsis;
 }
 
+.nav-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 300px;
+  height: 100px;
+  overflow: hidden;
+}
+
 .nav-actions {
   display: flex;
   align-items: center;
