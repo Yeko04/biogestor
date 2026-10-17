@@ -118,7 +118,7 @@ export function renderSolicitudesView() {
 
                   <div id="mapRecogida"></div>
                   <small class="form-help" style="margin-top: 0.4rem; display: block;">
-                    💡 Haz clic en el mapa para colocar el marcador 🚛 o arrástralo para ajustar la posición exacta de recogida.
+                    Haz clic en el mapa para colocar el marcador o arrástralo para ajustar la posición exacta de recogida.
                   </small>
 
                   <input type="hidden" id="solLat" value="">
@@ -175,7 +175,7 @@ export function renderSolicitudesView() {
                         <td data-label="Material">${s.material?.categoria_nombre || 'Material'}</td>
                         <td data-label="Cant. Estimada">${s.cantidad?.estimada_kg || 0} ${s.cantidad?.unidad_estimada || 'kg'}</td>
                         <td data-label="Modalidad">
-                          <div>${s.entrega?.modalidad === 'recogida' ? '🚛 Recogida en sitio' : '🚚 Entrega Propia'}</div>
+                          <div>${s.entrega?.modalidad === 'recogida' ? 'Recogida en sitio' : 'Entrega Propia'}</div>
                           ${s.entrega?.direccion ? `<div style="font-size:0.8rem; color:var(--color-text-secondary); max-width:200px; margin-top:0.2rem; line-height:1.3;">${s.entrega.direccion}</div>` : ''}
                           ${(s.entrega?.coordenadas?.lat && s.entrega?.coordenadas?.lng && s.entrega.coordenadas.lat !== 0)
                             ? `<a href="https://www.google.com/maps/search/?api=1&query=${s.entrega.coordenadas.lat},${s.entrega.coordenadas.lng}" target="_blank" rel="noopener" class="badge badge-info" style="margin-top:0.35rem; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.25rem;" title="Ver coordenadas exactas en Google Maps">

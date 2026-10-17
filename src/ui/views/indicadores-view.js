@@ -38,7 +38,7 @@ export function renderIndicadoresView() {
             <div class="kpi-meta">
               Meta mínima: ≥ ${kpis.metaDesviacionMinPct}% · 
               <strong style="color: ${kpis.metaCumplida ? '#15803d' : '#b91c1c'};">
-                ${kpis.metaCumplida ? '✓ META CUMPLIDA' : '⚠️ POR DEBAJO DE META'}
+                ${kpis.metaCumplida ? '✓ META CUMPLIDA' : 'POR DEBAJO DE META'}
               </strong>
             </div>
           </div>

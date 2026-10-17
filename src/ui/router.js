@@ -29,6 +29,15 @@ const routes = {
   '#admin': { render: renderAdminView, attach: attachAdminEvents }
 };
 
+const operationLinks = [
+  ['#solicitudes', 'Aportes'],
+  ['#recepcion', 'Recepción'],
+  ['#lotes', 'Lotes y procesos'],
+  ['#subproductos', 'Subproductos'],
+  ['#indicadores', 'Impacto'],
+  ['#admin', 'Configuración']
+];
+
 class AppRouter {
   constructor() {
     this.container = null;
@@ -80,13 +89,7 @@ class AppRouter {
     destroyInteractiveMap();
     const operational = !['#inicio', '#materiales', '#ciclo', '#productos', '#ubicacion'].includes(this.currentHash);
     document.body.classList.toggle('is-operation', operational);
-    document.getElementById('operationNav').hidden = !operational;
-    document.querySelectorAll('.operation-nav a').forEach((link) => {
-      const active = link.getAttribute('href') === this.currentHash;
-      link.classList.toggle('active', active);
-      if (active) link.setAttribute('aria-current', 'page');
-      else link.removeAttribute('aria-current');
-    });
+    this.updateMainNav(operational);
     this.container.innerHTML = route.render();
 
     // Attach view-specific interactive events
@@ -104,10 +107,31 @@ class AppRouter {
       const linkHash = link.getAttribute('href');
       if (linkHash === hash) {
         link.classList.add('active');
+        link.setAttribute('aria-current', 'page');
       } else {
         link.classList.remove('active');
+        link.removeAttribute('aria-current');
       }
     });
+  }
+
+  updateMainNav(operational) {
+    const navList = document.querySelector('#navMenu .nav-list');
+    if (!navList) return;
+
+    if (operational) {
+      navList.innerHTML = operationLinks
+        .map(([href, label]) => `<li><a class="nav-link" href="${href}">${label}</a></li>`)
+        .join('');
+    } else {
+      navList.innerHTML = `
+        <li><a class="nav-link" href="#ciclo">El proceso</a></li>
+        <li><a class="nav-link" href="#productos">Resultados</a></li>
+        <li><a class="nav-link" href="#ubicacion">Territorio</a></li>
+        <li><a class="nav-link" href="#materiales">Qué recibimos</a></li>
+      `;
+    }
+    this.updateActiveNavLinks(this.currentHash);
   }
 
   triggerGlintEffect() {
