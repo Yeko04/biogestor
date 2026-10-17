@@ -58,6 +58,12 @@ body{font-size:1rem;line-height:1.7}
 .alert{font-size:15px}
 .is-operation .nav-actions .operation-link,.is-operation .nav-actions .nav-participate{display:none}
 
+.scroll-progress{position:fixed;inset:0 0 auto;z-index:1001;height:3px;background:var(--acid);transform:scaleX(var(--scroll-progress,0));transform-origin:left;pointer-events:none}
+.scroll-top{position:fixed;right:24px;bottom:24px;z-index:900;width:48px;height:48px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:var(--forest);color:var(--paper);font-size:25px;box-shadow:0 8px 24px #142e2825;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px);transition:opacity 180ms ease,visibility 180ms ease,transform 180ms ease,background-color 180ms ease}
+.scroll-top.is-visible{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
+.scroll-top:hover{background:#254e3b}
+.scroll-top:focus-visible{outline:3px solid #a87d38;outline-offset:4px}
+
 /* Keep interaction feedback present but restrained. */
 .nav-link,.nav-participate,.btn,.resource-card,.resource-card>img,.cycle-step,.material-editorial{
   transition:color 180ms ease,background-color 180ms ease,border-color 180ms ease,transform 220ms ease,box-shadow 220ms ease,opacity 180ms ease;
@@ -70,8 +76,13 @@ body{font-size:1rem;line-height:1.7}
 .nav-link:focus-visible,.nav-participate:focus-visible,.btn:focus-visible{outline:3px solid #a87d38;outline-offset:4px}
 
 @media(max-width:639px){
+  .scroll-top{right:16px;bottom:16px;width:46px;height:46px}
   .hero-intro{font-size:15px}
   .section-heading>p,.cycle-step p,.territory-copy,.material-editorial p,.invite-inner>p{font-size:14px}
   .table td{font-size:14px}
   .form-control,.form-select,.form-textarea{font-size:16px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .scroll-top{transition:none}
 }
