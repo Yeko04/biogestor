@@ -275,6 +275,132 @@ export function crearLote({ nombre, proceso_id, recepciones_ids = [], responsabl
   return { success: true, data: nuevoLote };
 }
 
+export function actualizarLote(loteId, { nombre, proceso_id, recepciones_ids = [], responsable_id = 'u_admin_001' }) {
+  if (!nombre || !nombre.trim()) {
+    return { success: false, errors: ['El nombre del lote es obligatorio.'] };
+  }
+  if (!proceso_id) {
+    return { success: false, errors: ['Debe seleccionar un proceso para el lote.'] };
+  }
+  if (!Array.isArray(recepciones_ids) || new Set(recepciones_ids).size !== recepciones_ids.length) {
+    return { success: false, errors: ['La selección de recepciones no es válida.'] };
+  }
+
+  const state = store.getState();
+  const lotes = state.collections.lotes || [];
+  const index = lotes.findIndex((l) => l.id === loteId);
+  if (index === -1) {
+    return { success: false, errors: ['Lote no encontrado.'] };
+  }
+  const targetLote = lotes[index];
+
+  const procesos = state.config?.procesos || [];
+  const procesoSeleccionado = procesos.find((proceso) => proceso.id === proceso_id);
+  if (!procesoSeleccionado) {
+    return { success: false, errors: ['El proceso seleccionado no existe.'] };
+  }
+  if (!procesoSeleccionado.activo && proceso_id !== targetLote.proceso_id) {
+    return { success: false, errors: ['No se puede asignar un proceso inactivo al lote.'] };
+  }
+
+  const recepciones = state.collections.recepciones || [];
+  const recepcionesSeleccionadas = recepciones.filter((recepcion) => recepciones_ids.includes(recepcion.id));
+  if (recepcionesSeleccionadas.length !== recepciones_ids.length) {
+    return { success: false, errors: ['Una o más recepciones seleccionadas no existen en el sistema.'] };
+  }
+  if (recepcionesSeleccionadas.some((recepcion) => recepcion.lote_id && recepcion.lote_id !== loteId)) {
+    return { success: false, errors: ['Una o más recepciones seleccionadas ya pertenecen a otro lote.'] };
+  }
+
+  const asociacionesCambiaron = [...(targetLote.recepciones_ids || [])].sort().join('|') !== [...recepciones_ids].sort().join('|');
+  const procesoCambio = targetLote.proceso_id !== proceso_id;
+  const tieneHistorialDerivado =
+    (targetLote.seguimientos || []).length > 0 ||
+    (state.collections.subproductos || []).some((subproducto) => subproducto.lote_id === loteId) ||
+    (state.collections.salidas_subproductos || []).some((salida) => salida.lote_id === loteId);
+  if (tieneHistorialDerivado && (asociacionesCambiaron || procesoCambio)) {
+    return {
+      success: false,
+      errors: ['No se puede cambiar el proceso ni las recepciones de un lote con etapas o subproductos registrados.']
+    };
+  }
+
+  const updatedLote = updateLotLossesFromFollowUps({
+    ...targetLote,
+    nombre: nombre.trim(),
+    proceso_id,
+    recepciones_ids: [...recepciones_ids],
+    composicion: computeLotComposition(recepcionesSeleccionadas),
+    fecha_actualizacion: new Date().toISOString()
+  });
+  const nextLotes = [...lotes];
+  nextLotes[index] = updatedLote;
+  const recepcionesActualizadas = recepciones.map((recepcion) => {
+    if (recepciones_ids.includes(recepcion.id)) {
+      return { ...recepcion, lote_id: loteId };
+    }
+    if (recepcion.lote_id === loteId) {
+      return { ...recepcion, lote_id: null };
+    }
+    return recepcion;
+  });
+
+  store.setState((prev) => ({
+    ...prev,
+    collections: {
+      ...prev.collections,
+      lotes: nextLotes,
+      recepciones: recepcionesActualizadas
+    },
+    config: {
+      ...prev.config,
+      bitacora_cambios: addAuditLog(prev, 'editar', 'lotes', `Lote ${targetLote.codigo} (${updatedLote.nombre}) actualizado.`, responsable_id)
+    }
+  }), 'ACTUALIZAR_LOTE');
+
+  return { success: true, data: updatedLote };
+}
+
+export function eliminarLote(loteId, responsable_id = 'u_admin_001') {
+  const state = store.getState();
+  const lotes = state.collections.lotes || [];
+  const targetLote = lotes.find((l) => l.id === loteId);
+  if (!targetLote) {
+    return { success: false, errors: ['Lote no encontrado.'] };
+  }
+
+  const subproductos = state.collections.subproductos || [];
+  const salidas = state.collections.salidas_subproductos || [];
+  if (
+    subproductos.some((subproducto) => subproducto.lote_id === loteId) ||
+    salidas.some((salida) => salida.lote_id === loteId)
+  ) {
+    return {
+      success: false,
+      errors: ['No se puede eliminar este lote porque tiene subproductos o salidas asociados.']
+    };
+  }
+
+  const recepciones = (state.collections.recepciones || []).map((recepcion) => (
+    recepcion.lote_id === loteId ? { ...recepcion, lote_id: null } : recepcion
+  ));
+
+  store.setState((prev) => ({
+    ...prev,
+    collections: {
+      ...prev.collections,
+      lotes: lotes.filter((lote) => lote.id !== loteId),
+      recepciones
+    },
+    config: {
+      ...prev.config,
+      bitacora_cambios: addAuditLog(prev, 'eliminar', 'lotes', `Lote ${targetLote.codigo} (${targetLote.nombre}) eliminado.`, responsable_id)
+    }
+  }), 'ELIMINAR_LOTE');
+
+  return { success: true, data: targetLote };
+}
+
 export function registrarSeguimientoLote(loteId, seguimientoPayload) {
   const state = store.getState();
   const lotes = state.collections.lotes || [];
@@ -333,6 +459,96 @@ export function registrarSeguimientoLote(loteId, seguimientoPayload) {
   }), 'REGISTRAR_SEGUIMIENTO_LOTE');
 
   return { success: true, data: updatedLote };
+}
+
+export function actualizarSeguimientoLote(loteId, seguimientoId, seguimientoPayload, responsable_id = 'u_admin_001') {
+  const state = store.getState();
+  const lotes = state.collections.lotes || [];
+  const loteIndex = lotes.findIndex((lote) => lote.id === loteId);
+  if (loteIndex === -1) {
+    return { success: false, errors: ['Lote no encontrado.'] };
+  }
+
+  const targetLote = lotes[loteIndex];
+  const seguimientos = targetLote.seguimientos || [];
+  const seguimientoIndex = seguimientos.findIndex((item) => item.id === seguimientoId);
+  if (seguimientoIndex === -1) {
+    return { success: false, errors: ['Registro del historial no encontrado.'] };
+  }
+
+  const targetSeguimiento = seguimientos[seguimientoIndex];
+  const updatedSeguimiento = {
+    ...targetSeguimiento,
+    ...seguimientoPayload,
+    id: targetSeguimiento.id,
+    responsable_id,
+    datos_etapa: {
+      ...targetSeguimiento.datos_etapa,
+      ...(seguimientoPayload.datos_etapa || {})
+    },
+    medicion: {
+      ...targetSeguimiento.medicion,
+      ...(seguimientoPayload.medicion || {})
+    }
+  };
+  const validation = validateFollowUp(updatedSeguimiento);
+  if (!validation.valid) {
+    return { success: false, errors: validation.errors };
+  }
+
+  const nextSeguimientos = [...seguimientos];
+  nextSeguimientos[seguimientoIndex] = updatedSeguimiento;
+  const updatedLote = updateLotLossesFromFollowUps({
+    ...targetLote,
+    seguimientos: nextSeguimientos
+  });
+  const nextLotes = [...lotes];
+  nextLotes[loteIndex] = updatedLote;
+
+  store.setState((prev) => ({
+    ...prev,
+    collections: { ...prev.collections, lotes: nextLotes },
+    config: {
+      ...prev.config,
+      bitacora_cambios: addAuditLog(prev, 'editar', 'lotes', `Registro de etapa ${updatedSeguimiento.etapa} del lote ${targetLote.codigo} actualizado.`, responsable_id)
+    }
+  }), 'ACTUALIZAR_SEGUIMIENTO_LOTE');
+
+  return { success: true, data: updatedSeguimiento };
+}
+
+export function eliminarSeguimientoLote(loteId, seguimientoId, responsable_id = 'u_admin_001') {
+  const state = store.getState();
+  const lotes = state.collections.lotes || [];
+  const loteIndex = lotes.findIndex((lote) => lote.id === loteId);
+  if (loteIndex === -1) {
+    return { success: false, errors: ['Lote no encontrado.'] };
+  }
+
+  const targetLote = lotes[loteIndex];
+  const seguimientos = targetLote.seguimientos || [];
+  const targetSeguimiento = seguimientos.find((item) => item.id === seguimientoId);
+  if (!targetSeguimiento) {
+    return { success: false, errors: ['Registro del historial no encontrado.'] };
+  }
+
+  const updatedLote = updateLotLossesFromFollowUps({
+    ...targetLote,
+    seguimientos: seguimientos.filter((item) => item.id !== seguimientoId)
+  });
+  const nextLotes = [...lotes];
+  nextLotes[loteIndex] = updatedLote;
+
+  store.setState((prev) => ({
+    ...prev,
+    collections: { ...prev.collections, lotes: nextLotes },
+    config: {
+      ...prev.config,
+      bitacora_cambios: addAuditLog(prev, 'eliminar', 'lotes', `Registro de etapa ${targetSeguimiento.etapa} del lote ${targetLote.codigo} eliminado.`, responsable_id)
+    }
+  }), 'ELIMINAR_SEGUIMIENTO_LOTE');
+
+  return { success: true, data: targetSeguimiento };
 }
 
 // ----------------------------------------------------------------------
